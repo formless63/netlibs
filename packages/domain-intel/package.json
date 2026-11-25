@@ -1,0 +1,31 @@
+{
+  "name": "@formless63/domain-intel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Domain-name facts without I/O: normalization, EPP/RDAP status, DNS provider inference, change signals, expiry.",
+  "keywords": [
+    "domain",
+    "dns",
+    "epp",
+    "rdap",
+    "whois"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

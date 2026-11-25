@@ -1,0 +1,30 @@
+{
+  "name": "@formless63/dns-plan",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Provider-neutral DNS record model, safe diff and change planning.",
+  "keywords": [
+    "dns",
+    "reconcile",
+    "diff",
+    "zone"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

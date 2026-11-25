@@ -1,0 +1,32 @@
+{
+  "domain": "example.com",
+  "priceClass": "standard",
+  "prices": {
+    "register": [
+      {
+        "period": { "value": 1, "unit": "y" },
+        "priceInDefaultCurrency": {
+          "finalPrice": { "amount": "9.18", "currency": "USD" },
+          "regularPrice": { "amount": "9.18", "currency": "USD" }
+        }
+      }
+    ],
+    "transfer": [],
+    "renew": [
+      {
+        "period": { "value": 2, "unit": "y" },
+        "priceInDefaultCurrency": {
+          "finalPrice": { "amount": "21.96", "currency": "USD" },
+          "regularPrice": { "amount": "21.96", "currency": "USD" }
+        }
+      },
+      {
+        "period": { "value": 1, "unit": "y" },
+        "priceInDefaultCurrency": {
+          "finalPrice": { "amount": "10.98", "currency": "usd" },
+          "regularPrice": { "amount": "11.98", "currency": "USD" }
+        }
+      }
+    ]
+  }
+}

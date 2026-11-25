@@ -1,0 +1,33 @@
+{
+  "name": "@formless63/registrar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A provider-neutral contract for reading a domain registrar account, with a conformance suite.",
+  "keywords": [
+    "registrar",
+    "domain",
+    "adapter"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

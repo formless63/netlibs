@@ -1,0 +1,30 @@
+{
+  "name": "@formless63/provider-http",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Safe HTTP plumbing for API clients: URL guards, bounded reads, sanitized errors, rate budgets.",
+  "keywords": [
+    "http",
+    "fetch",
+    "rate-limit",
+    "api-client"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

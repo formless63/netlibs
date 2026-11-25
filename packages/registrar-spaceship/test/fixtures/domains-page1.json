@@ -1,0 +1,48 @@
+{
+  "items": [
+    {
+      "name": "Example.COM",
+      "unicodeName": "example.com",
+      "isPremium": false,
+      "autoRenew": true,
+      "registrationDate": "2021-03-04T22:15:00.000Z",
+      "expirationDate": "2027-03-04T22:15:00.000Z",
+      "lifecycleStatus": "registered",
+      "verificationStatus": "success",
+      "eppStatuses": [
+        "clientTransferProhibited",
+        "clientDeleteProhibited",
+        "clientTransferProhibited"
+      ],
+      "suspensions": [],
+      "privacyProtection": { "contactForm": true, "level": "high" },
+      "nameservers": {
+        "provider": "basic",
+        "hosts": ["NS2.Example.NET.", "ns1.example.net", "ns1.example.net"]
+      },
+      "contacts": {
+        "registrant": "contact-handle-1",
+        "admin": "contact-handle-1",
+        "tech": "contact-handle-1",
+        "billing": "contact-handle-1",
+        "attributes": []
+      }
+    },
+    {
+      "name": "example.net",
+      "unicodeName": "example.net",
+      "isPremium": true,
+      "autoRenew": false,
+      "registrationDate": "2019-12-31T23:30:00.000Z",
+      "expirationDate": "2026-12-31T23:30:00.000Z",
+      "lifecycleStatus": "expired",
+      "verificationStatus": "pending",
+      "eppStatuses": [],
+      "suspensions": [{ "reasonCode": "unverifiedRegistrant" }],
+      "privacyProtection": { "contactForm": false, "level": "public" },
+      "nameservers": { "provider": "custom", "hosts": ["ns.example.org"] },
+      "contacts": { "registrant": "contact-handle-2" }
+    }
+  ],
+  "total": 3
+}

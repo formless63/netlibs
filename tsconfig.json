@@ -1,0 +1,48 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "types": [
+      "bun",
+      "node"
+    ],
+    "paths": {
+      "@formless63/provider-http": [
+        "./packages/provider-http/src/index.ts"
+      ],
+      "@formless63/domain-intel": [
+        "./packages/domain-intel/src/index.ts"
+      ],
+      "@formless63/rdap": [
+        "./packages/rdap/src/index.ts"
+      ],
+      "@formless63/registrar": [
+        "./packages/registrar/src/index.ts"
+      ],
+      "@formless63/registrar-spaceship": [
+        "./packages/registrar-spaceship/src/index.ts"
+      ],
+      "@formless63/registrar-namecheap": [
+        "./packages/registrar-namecheap/src/index.ts"
+      ],
+      "@formless63/dns-plan": [
+        "./packages/dns-plan/src/index.ts"
+      ],
+      "@formless63/cloudflare-dns": [
+        "./packages/cloudflare-dns/src/index.ts"
+      ],
+      "@formless63/pangolin-client": [
+        "./packages/pangolin-client/src/index.ts"
+      ],
+      "@formless63/registrar/testing": [
+        "./packages/registrar/src/testing.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/*/test",
+    "scripts"
+  ]
+}

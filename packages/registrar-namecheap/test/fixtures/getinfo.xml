@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+  <Errors />
+  <Warnings />
+  <RequestedCommand>namecheap.domains.getInfo</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.getInfo"><DomainGetInfoResult Status="Ok" ID="1" DomainName="example.com" OwnerName="owner" IsOwner="true" IsPremium="false"><DomainDetails><CreatedDate>02/15/2016</CreatedDate><ExpiredDate>02/15/2027</ExpiredDate><NumYears>0</NumYears></DomainDetails><LockDetails /><Whoisguard Enabled="True"><ID>53536</ID><ExpiredDate>11/04/2027</ExpiredDate></Whoisguard><DnsDetails ProviderType="CUSTOM" IsUsingOurDNS="false" HostCount="0" EmailType="" DynamicDNSStatus="false" IsFailover="false"><Nameserver>NS2.Example.NET.</Nameserver><Nameserver>ns1.example.net</Nameserver><Nameserver>ns1.example.net</Nameserver></DnsDetails><Modificationrights All="true" /></DomainGetInfoResult></CommandResponse>
+  <Server>WEB1</Server><GMTTimeDifference>--5:00</GMTTimeDifference><ExecutionTime>0.012</ExecutionTime>
+</ApiResponse>

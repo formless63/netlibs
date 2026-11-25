@@ -1,0 +1,35 @@
+{
+  "name": "@formless63/rdap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RDAP domain lookups with IANA bootstrap, normalized to a small typed result.",
+  "keywords": [
+    "rdap",
+    "whois",
+    "domain",
+    "iana"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/domain-intel": "workspace:^",
+    "@formless63/provider-http": "workspace:^",
+    "zod": "^4.6.0"
+  }
+}

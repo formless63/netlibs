@@ -1,0 +1,6 @@
+{
+  "domain": "example.net",
+  "priceClass": "premium",
+  "prices": { "register": [], "transfer": [], "renew": [] },
+  "errorCode": "priceUnavailable"
+}

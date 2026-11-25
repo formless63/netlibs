@@ -1,0 +1,23 @@
+{
+  "name": "netlibs",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "bun@1.4.4",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client",
+    "typecheck": "bun run build && tsc -p tsconfig.json",
+    "test": "bun run build && bun test packages",
+    "verify:packages": "bun scripts/verify-packages.ts",
+    "pack:all": "bun scripts/pack.ts",
+    "ci": "bun run typecheck && bun run test && bun run verify:packages"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.5",
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2"
+  }
+}

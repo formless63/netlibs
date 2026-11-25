@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "name": "example.org",
+      "lifecycleStatus": "registered",
+      "nameservers": { "provider": "basic", "hosts": [] }
+    }
+  ],
+  "total": 3
+}
