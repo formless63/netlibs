@@ -344,7 +344,7 @@ const EXCEL_HTML = `
   <html xmlns:x="urn:schemas-microsoft-com:office:excel"><head>
   <style>td { mso-number-format: General; }</style></head><body>
   <table><tbody><tr><td>Qty</td><td>SKU</td></tr>
-  <tr><td>4</td><td>RA-SNES-CSYNC</td></tr></tbody></table></body></html>`;
+  <tr><td>4</td><td>SKU-0042</td></tr></tbody></table></body></html>`;
 
 describe('richClipboardPasteDisposition ', () => {
   it('Excel/Sheets shape (table HTML + image flavor) → consume-html', () => {

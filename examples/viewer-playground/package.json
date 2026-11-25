@@ -1,0 +1,30 @@
+{
+  "name": "viewer-playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --port 4310",
+    "build": "vite build",
+    "start": "bun serve.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@formless63/viewer-ecad": "workspace:*",
+    "@formless63/viewer-lbx": "workspace:*",
+    "@formless63/viewer-markdown": "workspace:*",
+    "@formless63/viewer-media": "workspace:*",
+    "@formless63/viewer-model": "workspace:*",
+    "@formless63/viewer-pdf": "workspace:*",
+    "@formless63/viewers": "workspace:*",
+    "@tanstack/react-router": "^1.169.0",
+    "@tanstack/react-start": "^1.169.7",
+    "mermaid": "^12.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite": "^8.3.8",
+    "typescript": "7.0.2"
+  }
+}

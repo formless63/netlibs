@@ -1,6 +1,6 @@
 # Third-party notices
 
-These apply to the `editor-*` packages.
+These apply to the `editor-*` and `viewer-*` packages.
 
 ## Vendored code
 
@@ -78,6 +78,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### KiCanvas (MIT)
+
+`packages/viewer-ecad/vendor/kicanvas.js`, © 2022 Alethea Katherine Flowers, with the changes listed in
+`packages/viewer-ecad/vendor/README.md`. Its licence and the notices of what it includes are in
+`packages/viewer-ecad/vendor/LICENSE.md`.
+
+### Material Symbols Outlined (Apache-2.0)
+
+A 17-icon subset, `packages/viewer-ecad/vendor/material-symbols.js`, © Google. Licence:
+`packages/viewer-ecad/vendor/LICENSE-material-symbols.txt`.
+
 ## Runtime dependencies (not vendored)
 
 | Package | License |
@@ -90,3 +101,11 @@ SOFTWARE.
 | highlight.js | BSD-3-Clause |
 | mermaid (optional) | MIT |
 | pdfjs-dist (optional) | Apache-2.0 |
+| react-markdown, remark-gfm, rehype-highlight | MIT |
+| online-3d-viewer, three | MIT |
+| @google/model-viewer | Apache-2.0 |
+| @tracespace/* | MIT |
+| bil-lbx, fast-xml-parser | MIT |
+| jszip | MIT or GPL-3.0-or-later, used under MIT |
+
+Brother, P-touch and TZe are trademarks of Brother Industries. Names of products and formats are descriptive.
