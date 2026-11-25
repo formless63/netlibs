@@ -9,31 +9,42 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client && bun run build:editor",
+    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client packages/block-diff packages/messy-table packages/file-delivery packages/write-behind && bun run build:viewers && bun run build:editor",
+    "build:viewers": "tsc -b packages/viewer-core packages/viewer-pdf packages/viewer-model packages/viewer-ecad packages/viewer-lbx packages/viewer-media packages/viewer-markdown packages/viewers && bun scripts/build-viewer-css.ts",
     "build:editor": "tsc -b packages/editor-core packages/editor-renderer packages/editor-react && bun scripts/build-editor-css.ts",
-    "typecheck": "bun run build && tsc -p tsconfig.json && tsc -p tsconfig.editor.json && bun run --filter './examples/*' typecheck",
-    "test": "bun run build && bun test packages",
+    "typecheck": "bun run build && tsc -p tsconfig.json && tsc -p tsconfig.editor.json && tsc -p tsconfig.browser-test.json && bun run --filter './examples/*' typecheck",
+    "test": "bun run build && bun scripts/test.ts",
     "playground": "bun run build && bun --cwd examples/editor-playground dev",
     "build:examples": "bun run --filter './examples/*' build",
-    "verify:packages": "bun scripts/verify-packages.ts && bun scripts/verify-editor.ts",
+    "test:browser": "playwright test",
+    "fixtures": "bun scripts/make-fixtures.ts",
+    "verify:packages": "bun scripts/verify-packages.ts && bun scripts/verify-viewers.ts && bun scripts/verify-editor.ts",
     "pack:all": "bun scripts/pack.ts",
     "ci": "bun run typecheck && bun run test && bun run build:examples && bun run verify:packages"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/cli": "4.3.5",
     "@types/bun": "1.4.5",
     "@types/hast": "3.0.5",
     "@types/jsdom": "30.0.0",
     "@types/mdast": "4.0.4",
     "@types/node": "26.6.6",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "fast-check": "^4.0.0",
+    "fflate": "^0.8.3",
+    "file-type": "^22.3.0",
     "jsdom": "31.0.1",
     "mermaid": "12.3.0",
+    "papaparse": "^5.7.1",
     "pdfjs-dist": "6.5.438",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "tailwindcss": "4.3.5",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "^5.1.1"
   }
 }

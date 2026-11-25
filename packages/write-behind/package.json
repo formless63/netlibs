@@ -1,0 +1,30 @@
+{
+  "name": "@formless63/write-behind",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Coalesced, serialized, retried persistence for in-memory state.",
+  "keywords": [
+    "persistence",
+    "cache",
+    "retry",
+    "realtime"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

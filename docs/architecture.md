@@ -21,9 +21,15 @@ The editor packages are separate: `editor-renderer` and `editor-react` depend on
 else here depends on them. Public pages can use `editor-core/model` and `editor-renderer` without loading
 Tiptap or ProseMirror; `verify:packages` checks that.
 
+The viewers are separate too. One package per engine weight: installing a PDF viewer does not install a 3D
+engine. Format definitions live at a `/definitions` entry that imports no viewer code, and engines load in
+effects, so a registry costs nothing until a file is shown. Install `viewer-core` once: its provider is a React
+context. `block-diff`, `messy-table`, `file-delivery` and `write-behind` depend on nothing.
+
 ## Repository
 
-One monorepo, independent versions. Cross-package tests run together, and any package can move to its own
+One monorepo, independent versions. Tests use `bun:test`, or Vitest where they need jsdom
+mocks; `scripts/test.ts` picks by import. Also, any package can move to its own
 repository: each has its own manifest, README and tests, and `verify:packages` proves each tarball loads alone.
 
 Before 1.0, a breaking change in `provider-http` requires a minor release of everything that depends on it.

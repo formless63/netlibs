@@ -1,0 +1,54 @@
+{
+  "name": "@formless63/viewers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Every file viewer behind one lazy registry.",
+  "keywords": [
+    "react",
+    "viewer",
+    "preview",
+    "file"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewers"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./registry": {
+      "types": "./dist/registry.d.ts",
+      "import": "./dist/registry.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/viewer-core": "workspace:*",
+    "@formless63/viewer-ecad": "workspace:*",
+    "@formless63/viewer-lbx": "workspace:*",
+    "@formless63/viewer-markdown": "workspace:*",
+    "@formless63/viewer-media": "workspace:*",
+    "@formless63/viewer-model": "workspace:*",
+    "@formless63/viewer-pdf": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

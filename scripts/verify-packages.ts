@@ -42,8 +42,10 @@ async function consumer(names: Iterable<string>, extra: Record<string, string> =
 }
 
 for (const [name, manifest] of manifests) {
+  // React is a peer: npm installs it for packages that declare it.
   const dir = await consumer(closure(name));
-  const entries = Object.keys(manifest.exports).filter((key) => !key.endsWith('.json'));
+  // Stylesheets and worker entries are not loadable in Node.
+  const entries = Object.keys(manifest.exports).filter((key) => !/\.json$|\.css$|worker$|mermaid$/.test(key));
   const imports = entries.map((key) => `await import(${JSON.stringify(name + key.slice(1))});`).join('\n');
   await Bun.write(join(dir, 'load.mjs'), `${imports}\n`);
   await $`node load.mjs`.cwd(dir);
@@ -54,7 +56,9 @@ for (const [name, manifest] of manifests) {
   await rm(dir, { recursive: true });
 }
 
-const dir = await consumer(manifests.keys(), { typescript: '7.0.2' });
+/** React packages are checked by verify-viewers.ts. */
+const plain = [...manifests].filter(([name]) => !name.includes('/viewer')).map(([name]) => name);
+const dir = await consumer(plain, { typescript: '7.0.2' });
 await Bun.write(
   join(dir, 'consumer.ts'),
   `
@@ -64,6 +68,11 @@ import { compareRegistrations, inferDnsProvider } from '@formless63/domain-intel
 import { createPangolinClient } from '@formless63/pangolin-client';
 import { createRateBudget, ProviderError, type ProviderErrorKind } from '@formless63/provider-http';
 import { createRdapClient, type RdapDomain } from '@formless63/rdap';
+import { diffBlocks } from '@formless63/block-diff';
+import { proseMirrorDiff } from '@formless63/block-diff/prosemirror';
+import { fileDelivery } from '@formless63/file-delivery';
+import { column, decimal, readTable } from '@formless63/messy-table';
+import { WriteBehind } from '@formless63/write-behind';
 import type { Registrar } from '@formless63/registrar';
 import { assertRegistrarConformance } from '@formless63/registrar/testing';
 import { createNamecheapRegistrar } from '@formless63/registrar-namecheap';
@@ -87,6 +96,12 @@ try {
 }
 const desired = [{ type: 'A', name: '@', content: '192.0.2.1', ttlSeconds: null, priority: null, proxied: false }];
 if (planOperations(diffRecords(desired, [])).length !== 1) throw new Error('plan');
+if (diffBlocks([{ type: 'p' }], [{ type: 'p' }], proseMirrorDiff())[0]?.status !== 'unchanged') throw new Error('diff');
+if (fileDelivery({ contentType: 'text/html', filename: 'x' }).disposition !== 'attachment') throw new Error('delivery');
+const total: string | null | undefined = readTable([['Total', 'Sku'], ['$1.50', 'a']], { total: column('Total', { read: decimal() }), sku: column('Sku') })?.rows[0]?.values.total;
+if (total !== '1.50') throw new Error('table');
+const saved: Promise<number> = new WriteBehind({ initialResult: 0, store: async () => 1 }).flush();
+if ((await saved) !== 0) throw new Error('write-behind');
 if (inferDnsProvider(['a.ns.cloudflare.com']) !== 'Cloudflare') throw new Error('infer');
 const fetch = async (url: string) => new Response(JSON.stringify(url.endsWith('dns.json') ? { services: [[['example'], ['https://r.example.invalid/']]] } : { objectClassName: 'domain', ldhName: 'A.EXAMPLE', status: ['ok'] }));
 const found = await createRdapClient({ fetch }).lookup('a.example');

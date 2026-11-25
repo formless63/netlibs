@@ -1,0 +1,38 @@
+{
+  "extends": "./tsconfig.browser.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "types": [
+      "bun",
+      "node"
+    ],
+    "lib": [
+      "ES2024",
+      "DOM",
+      "DOM.Iterable"
+    ]
+  },
+  "include": [
+    "packages/viewer-core/test",
+    "packages/viewer-pdf/test",
+    "packages/viewer-model/test",
+    "packages/viewer-ecad/test",
+    "packages/viewer-lbx/test",
+    "packages/viewer-media/test",
+    "packages/viewer-markdown/test",
+    "packages/viewers/test",
+    "packages/block-diff/test",
+    "packages/messy-table/test",
+    "packages/file-delivery/test",
+    "packages/write-behind/test",
+    "packages/file-delivery/browser",
+    "e2e",
+    "scripts/test-utils.tsx",
+    "scripts/vitest-setup.ts",
+    "scripts/make-fixtures.ts",
+    "playwright.config.ts",
+    "vitest.config.ts"
+  ]
+}
