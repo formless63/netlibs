@@ -1,0 +1,32 @@
+{
+  "extends": "./tsconfig.editor.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "bun",
+      "node"
+    ],
+    "paths": {
+      "@formless63/editor-core": [
+        "./packages/editor-core/src/index.ts"
+      ],
+      "@formless63/editor-core/model": [
+        "./packages/editor-core/src/model.ts"
+      ],
+      "@formless63/editor-renderer": [
+        "./packages/editor-renderer/src/index.ts"
+      ],
+      "@formless63/editor-renderer/html": [
+        "./packages/editor-renderer/src/html.tsx"
+      ],
+      "@formless63/editor-react": [
+        "./packages/editor-react/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "packages/editor-*/test",
+    "scripts/build-editor-css.ts",
+    "scripts/verify-editor.ts"
+  ]
+}

@@ -1,0 +1,29 @@
+/*
+ * Utilities are deliberately unlayered, so they beat the zero-specificity
+ * resets in editor.css and a host's own layered base styles.
+ * Compiled to a self-contained, `ce:`-prefixed utility sheet by scripts/build-editor-css.ts. */
+@layer theme;
+@import 'tailwindcss/theme.css' layer(theme) prefix(ce);
+@import 'tailwindcss/utilities.css' prefix(ce) source(none);
+@source '../src';
+
+@theme inline {
+  --color-background: var(--rich-background);
+  --color-foreground: var(--rich-foreground);
+  --color-card: var(--rich-card);
+  --color-popover: var(--rich-popover);
+  --color-popover-foreground: var(--rich-popover-foreground);
+  --color-primary: var(--rich-primary);
+  --color-primary-foreground: var(--rich-primary-foreground);
+  --color-muted: var(--rich-muted);
+  --color-muted-foreground: var(--rich-muted-foreground);
+  --color-accent: var(--rich-accent);
+  --color-accent-foreground: var(--rich-accent-foreground);
+  --color-border: var(--rich-border);
+  --color-input: var(--rich-input);
+  --color-destructive: var(--rich-destructive);
+  --color-destructive-ink: var(--rich-destructive-ink);
+  --color-warning: var(--rich-warning);
+  --color-warning-ink: var(--rich-warning-ink);
+  --font-mono: var(--rich-font-mono);
+}

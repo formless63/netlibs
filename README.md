@@ -1,7 +1,9 @@
 # netlibs
 
-Small, independent TypeScript libraries for domain names, DNS and the APIs around them. Use one or combine
-several. ESM, Node 22+, Bun, and no framework.
+Small, independent TypeScript libraries: domain names, DNS and the APIs around them, and a rich-text editor.
+Use one or combine several. ESM, Node 22+ and Bun.
+
+## Domains and DNS
 
 | Package | Use it to | Depends on |
 | --- | --- | --- |
@@ -15,9 +17,22 @@ several. ESM, Node 22+, Bun, and no framework.
 | [`pangolin-client`](packages/pangolin-client) | Use the Pangolin Integration API | zod, `provider-http` |
 | [`provider-http`](packages/provider-http) | Write a safe API client of your own | nothing |
 
+## Rich text
+
+| Package | Use it to | Runs in |
+| --- | --- | --- |
+| [`editor-core`](packages/editor-core) | Define, validate, convert, edit and version documents | Node, Bun, browser |
+| [`editor-core/model`](packages/editor-core) | The same model without Tiptap or ProseMirror | anywhere |
+| [`editor-renderer`](packages/editor-renderer) | Render documents read-only with React or to HTML | server or client |
+| [`editor-react`](packages/editor-react) | Edit documents in React, with media viewers | browser |
+
+The editor packages need no router, database, auth or Tailwind. They use the Tiptap, CodeMirror and Radix
+libraries and share nothing with the domain packages. Guides: [API](docs/editor/api.md),
+[TanStack Start](docs/editor/tanstack-start.md), [limitations](docs/editor/limitations.md).
+
 All names are under `@formless63/`. Not on npm yet; build tarballs with `bun run pack:all`.
 
-## Composing them
+## Composing the domain packages
 
 ```ts
 import { compareRegistrations, describeChange } from '@formless63/domain-intel';
@@ -40,7 +55,7 @@ const plan = planOperations(diffRecords(desired, await dns.listRecords(ref)));
 await dns.apply(ref, plan);
 ```
 
-## Shared rules
+## Shared rules for API clients
 
 - **One error vocabulary.** Every client throws a `ProviderError` subclass with a `kind`
   (`unauthorized`, `not_found`, `rate_limited`, …), `status`, `retryAfterMs` and `retryable`.
@@ -55,8 +70,10 @@ await dns.apply(ref, plan);
 
 ```bash
 bun install
-bun run ci               # build, typecheck, test, verify packed packages in clean directories
+bun run ci               # build, typecheck, test, examples, verify packed packages in clean directories
+bun run playground       # the editor, at http://localhost:5173
 bun run pack:all         # ./artifacts/*.tgz
 ```
 
-Structure and reasons: [docs/architecture.md](docs/architecture.md). MIT licensed.
+Structure and reasons: [docs/architecture.md](docs/architecture.md). MIT licensed; the editor packages also carry
+[third-party notices](THIRD_PARTY_NOTICES.md).

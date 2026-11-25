@@ -14,8 +14,12 @@ A package exists when someone could want it without the others.
   class, so `instanceof` works across packages.
 
 Dependencies point one way: provider → contract/pure → nothing, and provider → `provider-http` → nothing.
-`zod` (MIT) is the only third-party dependency. Official SDKs were not adopted: they would put large generated
+`zod` (MIT) is the domain packages' only third-party dependency. Official SDKs were not adopted: they would put large generated
 types on the public surface to save one header and an envelope.
+
+The editor packages are separate: `editor-renderer` and `editor-react` depend on `editor-core`, and nothing
+else here depends on them. Public pages can use `editor-core/model` and `editor-renderer` without loading
+Tiptap or ProseMirror; `verify:packages` checks that.
 
 ## Repository
 

@@ -1,0 +1,61 @@
+{
+  "name": "@formless63/editor-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rich-text document model: schema, validation, Markdown, programmatic edits and revisions.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./model": {
+      "types": "./dist/model.d.ts",
+      "default": "./dist/model.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.35.0",
+    "@tiptap/extension-code-block-lowlight": "3.35.0",
+    "@tiptap/extension-code-block": "3.35.0",
+    "@tiptap/extension-details": "3.35.0",
+    "@tiptap/extension-heading": "3.35.0",
+    "@tiptap/extension-image": "3.35.0",
+    "@tiptap/extension-invisible-characters": "3.35.0",
+    "@tiptap/extension-link": "3.35.0",
+    "@tiptap/extension-mathematics": "3.35.0",
+    "@tiptap/extension-placeholder": "3.35.0",
+    "@tiptap/extensions": "3.35.0",
+    "@tiptap/extension-subscript": "3.35.0",
+    "@tiptap/extension-superscript": "3.35.0",
+    "@tiptap/extension-table": "3.35.0",
+    "@tiptap/extension-table-cell": "3.35.0",
+    "@tiptap/extension-table-header": "3.35.0",
+    "@tiptap/extension-table-row": "3.35.0",
+    "@tiptap/extension-list": "3.35.0",
+    "@tiptap/extension-task-item": "3.35.0",
+    "@tiptap/extension-task-list": "3.35.0",
+    "@tiptap/pm": "3.35.0",
+    "@tiptap/starter-kit": "3.35.0",
+    "@types/mdast": "4.0.4",
+    "highlight.js": "11.12.0",
+    "katex": "0.18.11",
+    "lowlight": "3.3.0",
+    "remark-directive": "4.0.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

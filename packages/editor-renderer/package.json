@@ -1,0 +1,43 @@
+{
+  "name": "@formless63/editor-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only React and HTML renderer for rich-text documents. No editor code.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./html": {
+      "types": "./dist/html.d.ts",
+      "default": "./dist/html.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/editor-core": "workspace:*",
+    "@types/hast": "3.0.5",
+    "highlight.js": "11.12.0",
+    "katex": "0.18.11",
+    "lowlight": "3.3.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

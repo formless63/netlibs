@@ -42,7 +42,16 @@
     }
   },
   "include": [
-    "packages/*/test",
-    "scripts"
+    "packages/cloudflare-dns/test",
+    "packages/dns-plan/test",
+    "packages/domain-intel/test",
+    "packages/pangolin-client/test",
+    "packages/provider-http/test",
+    "packages/rdap/test",
+    "packages/registrar/test",
+    "packages/registrar-namecheap/test",
+    "packages/registrar-spaceship/test",
+    "scripts/pack.ts",
+    "scripts/verify-packages.ts"
   ]
 }

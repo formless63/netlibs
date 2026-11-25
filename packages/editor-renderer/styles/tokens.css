@@ -1,0 +1,71 @@
+/*
+ * Theme tokens. Each reads the host's shadcn-style variable when one exists
+ * and otherwise uses the default, so an app with a theme needs no setup.
+ * Override any `--rich-*` variable to theme the editor on its own.
+ */
+:root {
+  --rich-background: var(--background, #ffffff);
+  --rich-foreground: var(--foreground, #1c1c1f);
+  --rich-card: var(--card, #ffffff);
+  --rich-card-foreground: var(--card-foreground, #1c1c1f);
+  --rich-popover: var(--popover, #ffffff);
+  --rich-popover-foreground: var(--popover-foreground, #1c1c1f);
+  --rich-primary: var(--primary, #2457c5);
+  --rich-primary-foreground: var(--primary-foreground, #ffffff);
+  --rich-muted: var(--muted, #f3f3f5);
+  --rich-muted-foreground: var(--muted-foreground, #63636b);
+  --rich-accent: var(--accent, #eeeef2);
+  --rich-accent-foreground: var(--accent-foreground, #1c1c1f);
+  --rich-border: var(--border, #dddde2);
+  --rich-input: var(--input, #cfcfd6);
+  --rich-ring: var(--ring, #7d9be0);
+  --rich-destructive: var(--destructive, #c62f2f);
+  --rich-destructive-ink: var(--destructive-ink, var(--rich-destructive));
+  --rich-success: var(--success, #23804a);
+  --rich-warning: var(--warning, #b7791f);
+  --rich-warning-ink: var(--warning-ink, #8a5a12);
+  --rich-info: #2f6fd6;
+  --rich-orange: #c9651a;
+  --rich-purple: #7a4fd0;
+  --rich-radius-sm: var(--radius-sm, 0.25rem);
+  --rich-radius-md: var(--radius-md, 0.375rem);
+  --rich-radius-lg: var(--radius-lg, 0.5rem);
+  --rich-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --rich-shadow-md: 0 6px 18px rgb(0 0 0 / 0.14);
+  --rich-font-mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --rich-code-keyword: #8a3ffc;
+  --rich-code-string: #23804a;
+  --rich-code-number: #b3541e;
+  --rich-code-title: #2457c5;
+  --rich-code-comment: #6f6f78;
+}
+
+.dark,
+[data-theme='dark'] {
+  --rich-background: var(--background, #17171a);
+  --rich-foreground: var(--foreground, #ececf0);
+  --rich-card: var(--card, #1d1d21);
+  --rich-card-foreground: var(--card-foreground, #ececf0);
+  --rich-popover: var(--popover, #232328);
+  --rich-popover-foreground: var(--popover-foreground, #ececf0);
+  --rich-primary: var(--primary, #8fb0ff);
+  --rich-primary-foreground: var(--primary-foreground, #10131c);
+  --rich-muted: var(--muted, #28282e);
+  --rich-muted-foreground: var(--muted-foreground, #a5a5b0);
+  --rich-accent: var(--accent, #2f2f37);
+  --rich-accent-foreground: var(--accent-foreground, #ececf0);
+  --rich-border: var(--border, #38383f);
+  --rich-input: var(--input, #46464f);
+  --rich-destructive: var(--destructive, #ff7b72);
+  --rich-success: var(--success, #5cc98a);
+  --rich-warning: var(--warning, #e0b050);
+  --rich-warning-ink: var(--warning-ink, #e0b050);
+  --rich-info: #6ea8ff;
+  --rich-orange: #f0a060;
+  --rich-purple: #b79bff;
+  --rich-code-keyword: #c9a6ff;
+  --rich-code-string: #7fd6a4;
+  --rich-code-number: #f0a878;
+  --rich-code-title: #8fb0ff;
+  --rich-code-comment: #8d8d99;
+}

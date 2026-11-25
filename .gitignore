@@ -3,3 +3,7 @@ dist
 *.tsbuildinfo
 artifacts
 packages/*/LICENSE
+packages/*/THIRD_PARTY_NOTICES.md
+.output
+.nitro
+.tanstack

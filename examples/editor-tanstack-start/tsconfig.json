@@ -1,0 +1,1 @@
+{ "extends": "../../tsconfig.editor.base.json", "compilerOptions": { "noEmit": true, "declaration": false, "declarationMap": false, "types": ["vite/client"] }, "include": ["src"] }

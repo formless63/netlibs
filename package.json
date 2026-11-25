@@ -5,19 +5,35 @@
   "license": "MIT",
   "packageManager": "bun@1.4.4",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client",
-    "typecheck": "bun run build && tsc -p tsconfig.json",
+    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client && bun run build:editor",
+    "build:editor": "tsc -b packages/editor-core packages/editor-renderer packages/editor-react && bun scripts/build-editor-css.ts",
+    "typecheck": "bun run build && tsc -p tsconfig.json && tsc -p tsconfig.editor.json && bun run --filter './examples/*' typecheck",
     "test": "bun run build && bun test packages",
-    "verify:packages": "bun scripts/verify-packages.ts",
+    "playground": "bun run build && bun --cwd examples/editor-playground dev",
+    "build:examples": "bun run --filter './examples/*' build",
+    "verify:packages": "bun scripts/verify-packages.ts && bun scripts/verify-editor.ts",
     "pack:all": "bun scripts/pack.ts",
-    "ci": "bun run typecheck && bun run test && bun run verify:packages"
+    "ci": "bun run typecheck && bun run test && bun run build:examples && bun run verify:packages"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "4.3.5",
     "@types/bun": "1.4.5",
+    "@types/hast": "3.0.5",
+    "@types/jsdom": "30.0.0",
+    "@types/mdast": "4.0.4",
     "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "jsdom": "31.0.1",
+    "mermaid": "12.3.0",
+    "pdfjs-dist": "6.5.438",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tailwindcss": "4.3.5",
     "typescript": "7.0.2"
   }
 }

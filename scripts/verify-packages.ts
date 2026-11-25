@@ -15,6 +15,7 @@ await $`bun scripts/pack.ts`.cwd(root).quiet();
 type Manifest = { name: string; version: string; dependencies?: Record<string, string>; exports: Record<string, unknown> };
 const manifests = new Map<string, Manifest>();
 for (const dir of await readdir(`${root}packages`)) {
+  if (dir.startsWith('editor-')) continue; // scripts/verify-editor.ts
   const manifest = (await Bun.file(`${root}packages/${dir}/package.json`).json()) as Manifest;
   manifests.set(manifest.name, manifest);
 }
