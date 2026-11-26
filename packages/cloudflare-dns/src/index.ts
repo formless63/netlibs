@@ -10,7 +10,8 @@ import {
   type DnsRecord,
   type DnsZone,
   type ObservedRecord,
-  type RequestOptions
+  type RequestOptions,
+  type ZoneRef
 } from '@formless63/dns-plan';
 import {
   assertHeaderSafe,
@@ -83,6 +84,8 @@ export interface CloudflareDns extends DnsProvider {
   listZones(options?: RequestOptions & { name?: string; limit?: number }): Promise<CloudflareZone[]>;
   findZone(name: string, options?: RequestOptions): Promise<CloudflareZone | null>;
   getZone(zoneId: string, options?: RequestOptions): Promise<CloudflareZone>;
+  /** Every record in the zone, or an error. `limit` asks for at most that many (a preview, say). */
+  listRecords(zone: ZoneRef, options?: RequestOptions & { limit?: number }): Promise<ObservedRecord[]>;
 }
 
 const zoneSchema = z.looseObject({
@@ -293,6 +296,12 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     };
   }
 
+  function checkLimit(limit: number | undefined, what: string): void {
+    if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+      throw new CloudflareError({ kind: 'invalid_input', message: `a ${what} list limit must be a positive integer` });
+    }
+  }
+
   const recordsPath = (zoneId: string): string => `/zones/${encodeURIComponent(zoneId)}/dns_records`;
 
   function toRecord(item: unknown, zoneName: string, operation: string): ObservedRecord {
@@ -314,9 +323,10 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     operation: string,
     query: Record<string, QueryValue>,
     request_: RequestOptions,
-    pageLimit?: number
+    pageLimit?: number,
+    itemLimit?: number
   ): Promise<ObservedRecord[]> {
-    const items = await list(operation, recordsPath(zone.zoneId), query, RECORDS_PER_PAGE, request_, pageLimit);
+    const items = await list(operation, recordsPath(zone.zoneId), query, RECORDS_PER_PAGE, request_, pageLimit, itemLimit);
     return items.map((item) => toRecord(item, zone.zoneName, operation));
   }
 
@@ -505,9 +515,7 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     },
 
     async listZones({ name, limit, ...request_ } = {}) {
-      if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
-        throw new CloudflareError({ kind: 'invalid_input', message: 'a zone list limit must be a positive integer' });
-      }
+      checkLimit(limit, 'zone');
       const items = await list(
         'zones.list',
         '/zones',
@@ -531,8 +539,9 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
       return toZone(result, 'zones.get');
     },
 
-    async listRecords(zone, request_ = {}) {
-      return readRecords(zone, 'records.list', {}, request_);
+    async listRecords(zone, { limit, ...request_ } = {}) {
+      checkLimit(limit, 'record');
+      return readRecords(zone, 'records.list', {}, request_, maxPages, limit);
     },
 
     async apply({ zoneId, zoneName }, operations, request_ = {}) {

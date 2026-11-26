@@ -270,3 +270,13 @@ describe('a zone list the caller limits', () => {
     expect((await caught(setup([]).dns.listZones({ limit: 0 }))).kind).toBe('invalid_input');
   });
 });
+
+describe('a record list the caller limits', () => {
+  it('stops at the limit', async () => {
+    const page = Array.from({ length: 100 }, (_, i) => rec({ id: `r${i}` }));
+    const { dns, calls } = setup([ok(page, 9), ok(page, 9)]);
+    expect(await dns.listRecords(ZONE, { limit: 150 })).toHaveLength(150);
+    expect(calls).toHaveLength(2);
+    expect((await caught(setup([]).dns.listRecords(ZONE, { limit: 1.5 }))).kind).toBe('invalid_input');
+  });
+});
