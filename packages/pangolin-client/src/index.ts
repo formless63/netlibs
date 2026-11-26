@@ -194,8 +194,12 @@ function paginationTotal(data: unknown): number | null {
   return typeof total === 'number' && Number.isSafeInteger(total) && total >= 0 ? total : null;
 }
 
-const PAGE_SIZE = 500;
-const MAX_PAGES = 50;
+/** Rows asked for per list page. */
+export const PANGOLIN_LIST_PAGE_SIZE = 500;
+/** The most pages a list may take before it is an error. */
+export const PANGOLIN_MAX_LIST_PAGES = 50;
+const PAGE_SIZE = PANGOLIN_LIST_PAGE_SIZE;
+const MAX_PAGES = PANGOLIN_MAX_LIST_PAGES;
 const segment = encodeURIComponent;
 
 /**
