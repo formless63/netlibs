@@ -1,0 +1,36 @@
+name: Release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Trusted publishing on npm names this workflow file and environment.
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - name: Check the npm version (trusted publishing needs 11.5.1 or later)
+        run: node -e "const [a,b,c]=process.argv[1].split('.').map(Number);if(a<11||(a===11&&(b<5||(b===5&&c<1))))process.exit(1)" "$(npm --version)"
+      - run: bun install --frozen-lockfile
+      - run: bun run ci
+      - run: bun scripts/release.ts --publish
+        env:
+          # Only for the very first release; empty afterwards (see docs/releasing.md).
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
