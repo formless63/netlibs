@@ -75,7 +75,12 @@ export interface CloudflareDnsOptions {
 }
 
 export interface CloudflareDns extends DnsProvider {
-  listZones(options?: RequestOptions & { name?: string }): Promise<CloudflareZone[]>;
+  /**
+   * Every zone the token can see, or with `name` the one by that name.
+   * `limit` asks for at most that many (a probe, say); without it a list that
+   * does not end is an error.
+   */
+  listZones(options?: RequestOptions & { name?: string; limit?: number }): Promise<CloudflareZone[]>;
   findZone(name: string, options?: RequestOptions): Promise<CloudflareZone | null>;
   getZone(zoneId: string, options?: RequestOptions): Promise<CloudflareZone>;
 }
@@ -210,7 +215,9 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     query: Record<string, QueryValue>,
     perPage: number,
     { signal }: RequestOptions,
-    pageLimit: number = maxPages
+    pageLimit: number = maxPages,
+    /** The caller wants at most this many items, and knows it. */
+    itemLimit?: number
   ): Promise<unknown[]> {
     const items: unknown[] = [];
     for (let page = 1; page <= pageLimit; page += 1) {
@@ -226,6 +233,7 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
         });
       }
       items.push(...(result as unknown[]));
+      if (itemLimit !== undefined && items.length >= itemLimit) return items.slice(0, itemLimit);
       if (totalPages === null ? result.length < perPage : page >= totalPages) return items;
       if (result.length === 0) {
         throw new CloudflareError({
@@ -496,13 +504,19 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
       };
     },
 
-    async listZones({ name, ...request_ } = {}) {
+    async listZones({ name, limit, ...request_ } = {}) {
+      if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+        throw new CloudflareError({ kind: 'invalid_input', message: 'a zone list limit must be a positive integer' });
+      }
       const items = await list(
         'zones.list',
         '/zones',
         { name, 'account.id': options.accountId },
-        ZONES_PER_PAGE,
-        request_
+        // Cloudflare accepts 5 to 50 zones per page.
+        Math.min(ZONES_PER_PAGE, Math.max(5, limit ?? ZONES_PER_PAGE)),
+        request_,
+        maxPages,
+        limit
       );
       return items.map((item) => toZone(item, 'zones.list'));
     },

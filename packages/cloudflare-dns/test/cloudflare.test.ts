@@ -259,3 +259,14 @@ describe('a list that does not end', () => {
     expect(await setup([ok([])]).dns.listRecords(ZONE)).toEqual([]);
   });
 });
+
+describe('a zone list the caller limits', () => {
+  it('stops at the limit, in as few requests as it needs', async () => {
+    const zones = Array.from({ length: 5 }, (_, i) => zone({ id: `z${i}` }));
+    const { dns, calls } = setup([ok(zones, 4)]);
+    expect((await dns.listZones({ limit: 5 })).map(({ zoneId }) => zoneId)).toEqual(['z0', 'z1', 'z2', 'z3', 'z4']);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.url.searchParams.get('per_page')).toBe('5');
+    expect((await caught(setup([]).dns.listZones({ limit: 0 }))).kind).toBe('invalid_input');
+  });
+});

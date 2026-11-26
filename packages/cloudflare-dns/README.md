@@ -22,6 +22,7 @@ const records = await dns.listRecords({ zoneId: zone.zoneId, zoneName: zone.name
 - Whether Cloudflare keeps a record's comment and tags when an update omits them is not documented; assume
   it does not.
 - A list that does not end, or has an empty page before its last, is an error, never a partial result.
+  `listZones({ limit })` is the one way to ask for part of a list.
 - Share one `rateBudget` across clients of the same Cloudflare user: the limit also covers the dashboard.
 
 Creating zones and tokens is out of scope. Verified against stubs, not a live account.
