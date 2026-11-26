@@ -165,3 +165,118 @@ describe('apply', () => {
     expect(calls).toHaveLength(2);
   });
 });
+
+describe('a create refused because the name is taken', () => {
+  const exists = fail(400, [{ code: 81_053, message: 'An A, AAAA, or CNAME record with that host already exists.' }]);
+
+  it('reads back one name, a few pages, and compares content as DNS data', async () => {
+    const txt = create({ type: 'TXT', name: 'www', content: 'v=spf1 -all' });
+    const { dns, calls } = setup([exists, ok([rec({ id: 'there', type: 'TXT', name: 'www.example.test', content: '"v=spf1 -all"', proxied: false })], 1)]);
+    const [result] = await dns.apply(ZONE, [txt]);
+    expect(result).toEqual({ kind: 'create', type: 'TXT', name: 'www', status: 'already_present', recordId: 'there' });
+    expect(calls[1]!.url.searchParams.get('name.exact')).toBe('www.example.test');
+
+    const page = Array.from({ length: 100 }, (_, i) => rec({ id: `r${i}`, content: '203.0.113.99' }));
+    const long = setup([exists, ...Array.from({ length: 5 }, () => ok(page, 9))]);
+    expect((await caught(long.dns.apply(ZONE, [create()]))).message).toContain('did not end within 5 pages');
+    expect(long.calls).toHaveLength(6);
+  });
+
+  it('reports a TTL or proxy difference instead of claiming a full match', async () => {
+    const { dns } = setup([exists, ok([rec({ ttl: 300, proxied: true })], 1)]);
+    expect((await dns.apply(ZONE, [create()]))[0]!.differingAttributes).toEqual(['ttlSeconds', 'proxied']);
+  });
+
+  it('names what holds the name, and does not take another case or priority for the same record', async () => {
+    const other = setup([exists, ok([rec({ id: 'c1', type: 'CNAME', content: 'x.test' })], 1)]);
+    const error = await caught(other.dns.apply(ZONE, [create()]));
+    expect(error.message).toContain('a different record holds that name (CNAME)');
+    expect(error.detail['conflictingRecords']).toEqual([{ type: 'CNAME', recordId: 'c1' }]);
+
+    const txt = setup([exists, ok([rec({ type: 'TXT', content: 'token=abc' })], 1)]);
+    await caught(txt.dns.apply(ZONE, [create({ type: 'TXT', content: 'token=ABC' })]));
+    const mx = setup([exists, ok([rec({ type: 'MX', content: 'mail.test', priority: 20 })], 1)]);
+    await caught(mx.dns.apply(ZONE, [create({ type: 'MX', content: 'mail.test', priority: 10 })]));
+  });
+
+  it('keeps the kind of a read-back that fails', async () => {
+    const { dns } = setup([exists, { status: 429, body: {} }]);
+    expect((await caught(dns.apply(ZONE, [create()]))).kind).toBe('rate_limited');
+  });
+});
+
+describe('a type change is one batch', () => {
+  const swap: DnsOperation[] = [
+    { kind: 'delete', recordId: 'a1', record: { type: 'A', name: 'www', content: '203.0.113.10' }, group: 'g' },
+    { kind: 'delete', recordId: 'a2', record: { type: 'AAAA', name: 'www', content: '2001:db8::1' }, group: 'g' },
+    { kind: 'create', record: { ...A, type: 'CNAME', name: 'www', content: 'target.example.net' }, group: 'g' }
+  ];
+
+  it('sends the deletes and the creates in one request, one result each', async () => {
+    const { dns, calls, body } = setup([ok({ deletes: [{ id: 'a1' }, { id: 'a2' }], posts: [{ id: 'c1' }] })]);
+    const results = await dns.apply(ZONE, swap);
+    expect(calls).toHaveLength(1);
+    expect([calls[0]!.init.method, calls[0]!.url.pathname]).toEqual(['POST', '/client/v4/zones/zone1/dns_records/batch']);
+    expect(body(0)).toEqual({
+      deletes: [{ id: 'a1' }, { id: 'a2' }],
+      posts: [{ type: 'CNAME', name: 'www.example.test', content: 'target.example.net', ttl: 1, proxied: false }]
+    });
+    expect(results.map(({ kind, status, recordId }) => [kind, status, recordId])).toEqual([
+      ['delete', 'applied', 'a1'],
+      ['delete', 'applied', 'a2'],
+      ['create', 'applied', 'c1']
+    ]);
+    expect(dns.capabilities().atomicGroups).toBe(true);
+  });
+
+  it('reports a refused batch with only what came before it', async () => {
+    const { dns } = setup([ok(rec({ id: 'first' })), fail(400, [{ code: 1004, message: 'DNS Validation Error' }])]);
+    const error = await dns.apply(ZONE, [create({ name: 'api' }), ...swap]).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(DnsApplyError);
+    expect((error as DnsApplyError).completed.map(({ recordId }) => recordId)).toEqual(['first']);
+    expect((error as DnsApplyError).failed).toBe(swap[0]!);
+    expect((error as DnsApplyError).kind).toBe('invalid_request');
+  });
+
+  it('applies any other group one operation at a time', async () => {
+    const { dns, calls } = setup([ok(rec({ id: 'n' })), ok({ id: 'a1' })]);
+    await dns.apply(ZONE, [
+      { ...create({ name: 'www' }), group: 'g' },
+      { kind: 'delete', recordId: 'a1', record: { type: 'A', name: 'www', content: '203.0.113.9' }, group: 'g' }
+    ]);
+    expect(calls.map(({ init }) => init.method)).toEqual(['POST', 'DELETE']);
+    expect(calls[0]!.url.pathname).toBe('/client/v4/zones/zone1/dns_records');
+  });
+});
+
+describe('a list that does not end', () => {
+  it('is an error on an empty page before the last one', async () => {
+    const { dns } = setup([ok([rec()], 3), ok([], 3)]);
+    expect((await caught(dns.listRecords(ZONE))).message).toContain('empty page before the last');
+  });
+  it('accepts an empty zone', async () => {
+    expect(await setup([ok([], 1)]).dns.listRecords(ZONE)).toEqual([]);
+    expect(await setup([ok([])]).dns.listRecords(ZONE)).toEqual([]);
+  });
+});
+
+describe('a zone list the caller limits', () => {
+  it('stops at the limit, in as few requests as it needs', async () => {
+    const zones = Array.from({ length: 5 }, (_, i) => zone({ id: `z${i}` }));
+    const { dns, calls } = setup([ok(zones, 4)]);
+    expect((await dns.listZones({ limit: 5 })).map(({ zoneId }) => zoneId)).toEqual(['z0', 'z1', 'z2', 'z3', 'z4']);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.url.searchParams.get('per_page')).toBe('5');
+    expect((await caught(setup([]).dns.listZones({ limit: 0 }))).kind).toBe('invalid_input');
+  });
+});
+
+describe('a record list the caller limits', () => {
+  it('stops at the limit', async () => {
+    const page = Array.from({ length: 100 }, (_, i) => rec({ id: `r${i}` }));
+    const { dns, calls } = setup([ok(page, 9), ok(page, 9)]);
+    expect(await dns.listRecords(ZONE, { limit: 150 })).toHaveLength(150);
+    expect(calls).toHaveLength(2);
+    expect((await caught(setup([]).dns.listRecords(ZONE, { limit: 1.5 }))).kind).toBe('invalid_input');
+  });
+});

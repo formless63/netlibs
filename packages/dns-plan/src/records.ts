@@ -25,10 +25,19 @@ export interface DnsZone {
   nameservers: string[];
 }
 
-export type DnsOperation =
+export type DnsOperation = (
   | { kind: 'create'; record: DnsRecord }
   | { kind: 'update'; recordId: string; record: DnsRecord }
-  | { kind: 'delete'; recordId: string; record: Pick<DnsRecord, 'type' | 'name' | 'content'> };
+  | { kind: 'delete'; recordId: string; record: Pick<DnsRecord, 'type' | 'name' | 'content'> }
+) & {
+  /**
+   * Adjacent operations with the same group are one change: deletes, then the
+   * creates that need the name (a type change). A provider with
+   * `atomicGroups` applies them in one transaction; another applies them in
+   * order. Results stay one per operation.
+   */
+  group?: string;
+};
 
 export interface DnsOperationResult {
   kind: DnsOperation['kind'];
@@ -36,7 +45,13 @@ export interface DnsOperationResult {
   name: string;
   /** The `already_*` outcomes let a retried plan converge instead of failing. */
   status: 'applied' | 'already_present' | 'already_absent';
+  /** The record written or removed; on `already_present`, the one found. */
   recordId: string | null;
+  /**
+   * On `already_present`: attributes in which the record found differs from the
+   * one asked for. Type, name, content and (for MX and SRV) priority always match.
+   */
+  differingAttributes?: ReadonlyArray<'ttlSeconds' | 'proxied'>;
 }
 
 export interface DnsCapabilities {
@@ -47,6 +62,8 @@ export interface DnsCapabilities {
   automaticTtl: boolean;
   minTtlSeconds: number;
   maxTtlSeconds: number;
+  /** Applies a group of operations (see `DnsOperation.group`) all or nothing. Default false. */
+  atomicGroups?: boolean;
 }
 
 export interface ZoneRef {
@@ -66,7 +83,11 @@ export interface DnsProvider {
   findZone(name: string, options?: RequestOptions): Promise<DnsZone | null>;
   /** Every record in the zone, or an error: never a silently truncated list. */
   listRecords(zone: ZoneRef, options?: RequestOptions): Promise<ObservedRecord[]>;
-  /** Applies in order; rejects at the first failure. See `DnsApplyError`. */
+  /**
+   * Applies in order; rejects at the first failure. See `DnsApplyError`. A
+   * create refused because the name is taken succeeds only when that exact
+   * record is there.
+   */
   apply(
     zone: ZoneRef,
     operations: readonly DnsOperation[],
@@ -74,10 +95,18 @@ export interface DnsProvider {
   ): Promise<DnsOperationResult[]>;
 }
 
-/** The part of a plan that succeeded before `cause` stopped it. */
+/**
+ * The part of a plan that succeeded before `cause` stopped it. The failed
+ * operation is at index `completed.length`; when it was part of an atomic
+ * group, the group starts there and none of it was applied.
+ */
 export class DnsApplyError extends Error {
   readonly completed: readonly DnsOperationResult[];
   readonly failed: DnsOperation;
+  /** The cause's `kind` (`unauthorized`, `rate_limited`, …) when it has one, so callers can classify. */
+  readonly kind: string | null;
+  /** The cause's `retryable` flag when it has one. */
+  readonly retryable: boolean;
 
   constructor(completed: readonly DnsOperationResult[], failed: DnsOperation, cause: unknown) {
     super(`DNS ${failed.kind} of ${failed.record.type} ${failed.record.name} failed after ${completed.length} change(s)`, {
@@ -86,6 +115,9 @@ export class DnsApplyError extends Error {
     this.name = 'DnsApplyError';
     this.completed = completed;
     this.failed = failed;
+    const facts = typeof cause === 'object' && cause !== null ? (cause as { kind?: unknown; retryable?: unknown }) : {};
+    this.kind = typeof facts.kind === 'string' ? facts.kind : null;
+    this.retryable = facts.retryable === true;
   }
 }
 
@@ -107,12 +139,14 @@ export function toRelativeName(name: string, zoneName: string): string {
   return fqdn.endsWith(`.${zone}`) ? fqdn.slice(0, -(zone.length + 1)) : fqdn;
 }
 
-const HOST_CONTENT = new Set(['CNAME', 'NS', 'MX', 'PTR', 'ALIAS', 'ANAME']);
+const HOST_CONTENT = new Set(['CNAME', 'NS', 'MX', 'PTR', 'SRV', 'ALIAS', 'ANAME', 'DNAME']);
 
 /**
- * Content in a comparable form: host names lose case and the trailing dot, and
- * IPv6 addresses are compressed. Without this a correct zone can report drift
- * forever. TXT content is compared without surrounding quotes.
+ * Content in a comparable form: host names (and SRV targets) lose case and the
+ * trailing dot, and IPv6 addresses are compressed. TXT content loses its
+ * zone-file quoting, with its character strings joined; its case is kept.
+ * Without this a correct zone can report drift forever. Compare with this,
+ * store what was written.
  */
 export function normalizeContent(type: string, content: string): string {
   const kind = type.toUpperCase();
@@ -126,8 +160,8 @@ export function normalizeContent(type: string, content: string): string {
   }
   if (kind === 'TXT') {
     const text = content.trim();
-    const parts = text.match(/^"(?:[^"\\]|\\.)*"(?:\s+"(?:[^"\\]|\\.)*")*$/)
-      ? [...text.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((match) => match[1]!.replace(/\\(.)/g, '$1'))
+    const parts = /^"(?:[^"\\]|\\.)*"(?:\s*"(?:[^"\\]|\\.)*")*$/s.test(text)
+      ? [...text.matchAll(/"((?:[^"\\]|\\.)*)"/gs)].map((match) => match[1]!.replace(/\\(.)/gs, '$1'))
       : null;
     return parts ? parts.join('') : text;
   }
