@@ -100,7 +100,7 @@
     },
     "packages/cloudflare-dns": {
       "name": "@formless63/cloudflare-dns",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@formless63/dns-plan": "workspace:^",
         "@formless63/provider-http": "workspace:^",
@@ -109,7 +109,7 @@
     },
     "packages/dns-plan": {
       "name": "@formless63/dns-plan",
-      "version": "0.1.0",
+      "version": "0.2.0",
     },
     "packages/domain-intel": {
       "name": "@formless63/domain-intel",
@@ -216,7 +216,7 @@
     },
     "packages/pangolin-client": {
       "name": "@formless63/pangolin-client",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@formless63/provider-http": "workspace:^",
         "zod": "^4.6.0",
@@ -224,11 +224,11 @@
     },
     "packages/provider-http": {
       "name": "@formless63/provider-http",
-      "version": "0.1.0",
+      "version": "0.2.0",
     },
     "packages/purelymail-client": {
       "name": "@formless63/purelymail-client",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@formless63/dns-plan": "workspace:^",
         "@formless63/provider-http": "workspace:^",
@@ -237,7 +237,7 @@
     },
     "packages/rdap": {
       "name": "@formless63/rdap",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@formless63/domain-intel": "workspace:^",
         "@formless63/provider-http": "workspace:^",
@@ -254,7 +254,7 @@
     },
     "packages/registrar-namecheap": {
       "name": "@formless63/registrar-namecheap",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@formless63/domain-intel": "workspace:^",
         "@formless63/provider-http": "workspace:^",
@@ -264,7 +264,7 @@
     },
     "packages/registrar-spaceship": {
       "name": "@formless63/registrar-spaceship",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@formless63/domain-intel": "workspace:^",
         "@formless63/provider-http": "workspace:^",

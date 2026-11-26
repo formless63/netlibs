@@ -1,6 +1,6 @@
 {
   "name": "@formless63/provider-http",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Safe HTTP plumbing for API clients: URL guards, bounded reads, sanitized errors, rate budgets.",
   "keywords": [
     "http",

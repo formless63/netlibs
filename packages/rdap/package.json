@@ -1,6 +1,6 @@
 {
   "name": "@formless63/rdap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "RDAP domain lookups with IANA bootstrap, normalized to a small typed result.",
   "keywords": [
     "rdap",
