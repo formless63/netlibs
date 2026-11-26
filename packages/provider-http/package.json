@@ -1,7 +1,6 @@
 {
   "name": "@formless63/provider-http",
   "version": "0.1.0",
-  "private": true,
   "description": "Safe HTTP plumbing for API clients: URL guards, bounded reads, sanitized errors, rate budgets.",
   "keywords": [
     "http",
@@ -10,6 +9,15 @@
     "api-client"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/provider-http"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/provider-http#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -26,5 +34,8 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

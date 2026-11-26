@@ -1,7 +1,6 @@
 {
   "name": "@formless63/registrar",
   "version": "0.1.0",
-  "private": true,
   "description": "A provider-neutral contract for reading a domain registrar account, with a conformance suite.",
   "keywords": [
     "registrar",
@@ -9,6 +8,15 @@
     "adapter"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/registrar"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/registrar#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -29,5 +37,8 @@
       "default": "./dist/testing.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

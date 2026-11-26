@@ -38,7 +38,7 @@ The editor packages need no router, database, auth or Tailwind. They use the Tip
 libraries and share nothing with the domain packages. Guides: [API](docs/editor/api.md),
 [TanStack Start](docs/editor/tanstack-start.md), [limitations](docs/editor/limitations.md).
 
-All names are under `@formless63/`. Not on npm yet; build tarballs with `bun run pack:all`.
+All names are under `@formless63/` on npm, e.g. `npm install @formless63/rdap`. Releases: [docs/releasing.md](docs/releasing.md).
 
 ## Composing the domain packages
 

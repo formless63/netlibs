@@ -1,7 +1,6 @@
 {
   "name": "@formless63/pangolin-client",
   "version": "0.1.0",
-  "private": true,
   "description": "Typed client for the Pangolin Integration API.",
   "keywords": [
     "pangolin",
@@ -10,6 +9,15 @@
     "self-hosted"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/pangolin-client"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/pangolin-client#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -30,5 +38,8 @@
   "dependencies": {
     "@formless63/provider-http": "workspace:^",
     "zod": "^4.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

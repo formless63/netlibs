@@ -1,10 +1,18 @@
 {
   "name": "@formless63/editor-core",
   "version": "0.1.0",
-  "private": true,
   "description": "Rich-text document model: schema, validation, Markdown, programmatic edits and revisions.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/editor-core"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/editor-core#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "sideEffects": false,
   "files": [
     "dist",
@@ -57,5 +65,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

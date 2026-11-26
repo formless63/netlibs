@@ -1,7 +1,6 @@
 {
   "name": "@formless63/dns-plan",
   "version": "0.1.0",
-  "private": true,
   "description": "Provider-neutral DNS record model, safe diff and change planning.",
   "keywords": [
     "dns",
@@ -10,6 +9,15 @@
     "zone"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/dns-plan"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/dns-plan#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -26,5 +34,8 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

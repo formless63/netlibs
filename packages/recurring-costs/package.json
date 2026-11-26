@@ -1,7 +1,6 @@
 {
   "name": "@formless63/recurring-costs",
   "version": "0.1.0",
-  "private": true,
   "description": "Exact recurring-cost totals and renewal dates for subscriptions and contracts.",
   "keywords": [
     "billing",
@@ -11,6 +10,15 @@
     "bigint"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/recurring-costs"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/recurring-costs#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -27,5 +35,8 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
