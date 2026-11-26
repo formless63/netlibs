@@ -1,0 +1,31 @@
+{
+  "name": "@formless63/json-redact",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Key-based secret redaction for JSON-shaped values, before they are logged or stored.",
+  "keywords": [
+    "redact",
+    "secrets",
+    "json",
+    "logging",
+    "audit"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
+}

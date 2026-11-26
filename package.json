@@ -9,7 +9,7 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client && bun run build:editor",
+    "build": "tsc -b packages/provider-http packages/domain-intel packages/rdap packages/registrar packages/registrar-spaceship packages/registrar-namecheap packages/dns-plan packages/cloudflare-dns packages/pangolin-client packages/json-redact packages/recurring-costs packages/purelymail-client && bun run build:editor",
     "build:editor": "tsc -b packages/editor-core packages/editor-renderer packages/editor-react && bun scripts/build-editor-css.ts",
     "typecheck": "bun run build && tsc -p tsconfig.json && tsc -p tsconfig.editor.json && bun run --filter './examples/*' typecheck",
     "test": "bun run build && bun test packages",

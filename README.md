@@ -15,7 +15,15 @@ Use one or combine several. ESM, Node 22+ and Bun.
 | [`dns-plan`](packages/dns-plan) | Compare desired and actual DNS records and plan safe changes | nothing |
 | [`cloudflare-dns`](packages/cloudflare-dns) | Read and change Cloudflare DNS | zod, `dns-plan`, `provider-http` |
 | [`pangolin-client`](packages/pangolin-client) | Use the Pangolin Integration API | zod, `provider-http` |
+| [`purelymail-client`](packages/purelymail-client) | Manage Purelymail mail domains, and plan their DNS records | zod, `dns-plan`, `provider-http` |
 | [`provider-http`](packages/provider-http) | Write a safe API client of your own | nothing |
+
+## Utilities
+
+| Package | Use it to | Depends on |
+| --- | --- | --- |
+| [`json-redact`](packages/json-redact) | Redact secret-named keys before logging or storing JSON | nothing |
+| [`recurring-costs`](packages/recurring-costs) | Total recurring prices exactly and project renewal dates | nothing |
 
 ## Rich text
 

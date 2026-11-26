@@ -1,0 +1,35 @@
+{
+  "name": "@formless63/purelymail-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed client for the Purelymail mail-hosting API, and the DNS records a Purelymail domain needs.",
+  "keywords": [
+    "purelymail",
+    "email",
+    "mail-hosting",
+    "dns"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/dns-plan": "workspace:^",
+    "@formless63/provider-http": "workspace:^",
+    "zod": "^4.6.0"
+  }
+}
