@@ -1,6 +1,6 @@
 {
   "name": "@formless63/pangolin-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Typed client for the Pangolin Integration API.",
   "keywords": [
     "pangolin",

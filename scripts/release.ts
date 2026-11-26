@@ -63,6 +63,15 @@ for (const name of pending) {
   const { version } = manifests.get(name)!;
   const tarball = `${root}artifacts/${name.slice(1).replace('/', '-')}-${version}.tgz`;
   const flags = ['--access', 'public', ...(mode === 'dry-run' ? ['--dry-run'] : []), ...(usingToken && mode === 'publish' ? ['--provenance'] : [])];
-  await $`npm publish ${tarball} ${flags}`.cwd(root);
+  // npm limits how fast one account creates packages (HTTP 429); wait and retry.
+  for (let attempt = 1; ; attempt += 1) {
+    const result = await $`npm publish ${tarball} ${flags}`.cwd(root).nothrow();
+    if (result.exitCode === 0) break;
+    const rateLimited = /E429|429 Too Many Requests/.test(result.stderr.toString());
+    if (!rateLimited || attempt === 4) throw new Error(`npm publish failed for ${name}@${version}`);
+    const waitMs = 120_000 * attempt;
+    console.log(`npm is rate limiting new packages; retrying ${name} in ${waitMs / 60_000} min`);
+    await Bun.sleep(waitMs);
+  }
   console.log(`${mode === 'dry-run' ? 'checked' : 'published'} ${name}@${version}`);
 }

@@ -1,6 +1,6 @@
 {
   "name": "@formless63/dns-plan",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Provider-neutral DNS record model, safe diff and change planning.",
   "keywords": [
     "dns",

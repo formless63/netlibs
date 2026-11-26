@@ -92,8 +92,29 @@ describe('createHttpClient', () => {
         ),
       { maxResponseBytes: 5000 }
     );
-    expect((await caught(endless.request({ operation: 'x' }))).message).toContain('too large');
+    expect(await caught(endless.request({ operation: 'x' }))).toMatchObject({ status: 200, message: expect.stringContaining('too large') });
     expect(pulled).toBeLessThan(20);
+  });
+
+  it('keeps the status of an oversized error answer and drops its body', async () => {
+    let cancelled = false;
+    const big = client(
+      async () =>
+        new Response(
+          new ReadableStream({
+            pull(controller) {
+              controller.enqueue(new Uint8Array(1000));
+            },
+            cancel() {
+              cancelled = true;
+            }
+          }),
+          { status: 429, headers: { 'retry-after': '7' } }
+        ),
+      { maxResponseBytes: 5000 }
+    );
+    expect(await big.request({ operation: 'x' })).toMatchObject({ status: 429, text: '', retryAfterMs: 7000 });
+    expect(cancelled).toBe(true);
   });
 
   it('tells a timeout from a caller abort', async () => {
@@ -146,7 +167,9 @@ describe('URLs', () => {
 
   it('classifies private hosts at range boundaries', () => {
     const privates = ['localhost', 'router', 'x.local', 'x.internal', '10.0.0.0', '100.64.0.0', '100.127.255.255', '127.9.9.9', '169.254.169.254', '172.16.0.0', '172.31.255.255', '192.168.1.1', '0.0.0.0', '224.0.0.1', '255.255.255.255', '::1', '[::1]', '::', 'fc00::1', 'fd7a:115c:a1e0::1', 'fe80::1', 'ff02::1', '::ffff:192.168.0.1', '::ffff:7f00:1', '64:ff9b::a00:1', 'zz::1'];
-    const publics = ['example.com', '9.255.255.255', '11.0.0.0', '100.63.255.255', '100.128.0.0', '172.15.255.255', '172.32.0.0', '192.167.1.1', '8.8.8.8', '2001:4860::1', '::ffff:8.8.8.8', 'localhost.example.com'];
+    // Documentation, relay and special-use ranges, and IPv6 outside global unicast.
+    privates.push('192.0.2.1', '192.88.99.1', '198.51.100.1', '203.0.113.1', '[fec0::1]', '[2001:db8::1]', '[2001::1]', '[3fff::1]', '[100::1]', '[::10.0.0.1]', '[64:ff9b:1::1]', '[2002:7f00:1::]', '[2002:c000:201::]');
+    const publics = ['example.com', '9.255.255.255', '11.0.0.0', '100.63.255.255', '100.128.0.0', '172.15.255.255', '172.32.0.0', '192.167.1.1', '8.8.8.8', '2001:4860::1', '::ffff:8.8.8.8', 'localhost.example.com', '[2600::1]', '[2a00::1]', '[64:ff9b::909:909]', '[2002:909:909::]', '203.0.114.1'];
     expect(privates.filter((host) => !isPrivateHost(host))).toEqual([]);
     expect(publics.filter((host) => isPrivateHost(host))).toEqual([]);
   });

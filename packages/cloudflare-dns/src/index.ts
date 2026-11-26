@@ -1,5 +1,6 @@
 import {
   DnsApplyError,
+  normalizeContent,
   toFqdn,
   toRelativeName,
   type DnsCapabilities,
@@ -9,7 +10,8 @@ import {
   type DnsRecord,
   type DnsZone,
   type ObservedRecord,
-  type RequestOptions
+  type RequestOptions,
+  type ZoneRef
 } from '@formless63/dns-plan';
 import {
   assertHeaderSafe,
@@ -45,6 +47,12 @@ const AUTOMATIC_TTL = 1;
 const ZONES_PER_PAGE = 50;
 const RECORDS_PER_PAGE = 100;
 const DEFAULT_MAX_PAGES = 200;
+/** Pages read back for one refused create. One name needs one page. */
+const READ_BACK_MAX_PAGES = 5;
+/** Records named in a conflict error. */
+const MAX_REPORTED_CONFLICTS = 5;
+/** Types whose priority makes two values different records. */
+const PRIORITY_TYPES = new Set(['MX', 'SRV']);
 
 export interface CloudflareZone extends DnsZone {
   accountId: string | null;
@@ -68,9 +76,16 @@ export interface CloudflareDnsOptions {
 }
 
 export interface CloudflareDns extends DnsProvider {
-  listZones(options?: RequestOptions & { name?: string }): Promise<CloudflareZone[]>;
+  /**
+   * Every zone the token can see, or with `name` the one by that name.
+   * `limit` asks for at most that many (a probe, say); without it a list that
+   * does not end is an error.
+   */
+  listZones(options?: RequestOptions & { name?: string; limit?: number }): Promise<CloudflareZone[]>;
   findZone(name: string, options?: RequestOptions): Promise<CloudflareZone | null>;
   getZone(zoneId: string, options?: RequestOptions): Promise<CloudflareZone>;
+  /** Every record in the zone, or an error. `limit` asks for at most that many (a preview, say). */
+  listRecords(zone: ZoneRef, options?: RequestOptions & { limit?: number }): Promise<ObservedRecord[]>;
 }
 
 const zoneSchema = z.looseObject({
@@ -202,10 +217,13 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     path: string,
     query: Record<string, QueryValue>,
     perPage: number,
-    { signal }: RequestOptions
+    { signal }: RequestOptions,
+    pageLimit: number = maxPages,
+    /** The caller wants at most this many items, and knows it. */
+    itemLimit?: number
   ): Promise<unknown[]> {
     const items: unknown[] = [];
-    for (let page = 1; page <= maxPages; page += 1) {
+    for (let page = 1; page <= pageLimit; page += 1) {
       const { result, totalPages } = await request(operation, path, {
         query: { ...query, page, per_page: perPage },
         ...(signal ? { signal } : {})
@@ -218,12 +236,20 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
         });
       }
       items.push(...(result as unknown[]));
-      if (result.length === 0 || (totalPages === null ? result.length < perPage : page >= totalPages)) return items;
+      if (itemLimit !== undefined && items.length >= itemLimit) return items.slice(0, itemLimit);
+      if (totalPages === null ? result.length < perPage : page >= totalPages) return items;
+      if (result.length === 0) {
+        throw new CloudflareError({
+          kind: 'invalid_response',
+          message: 'Cloudflare returned an empty page before the last one',
+          operation
+        });
+      }
     }
     // A partial list is worse than none: a reconciler would act on the gap.
     throw new CloudflareError({
       kind: 'invalid_response',
-      message: `a Cloudflare list did not end within ${maxPages} pages`,
+      message: `a Cloudflare list did not end within ${pageLimit} pages`,
       operation
     });
   }
@@ -270,7 +296,39 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     };
   }
 
+  function checkLimit(limit: number | undefined, what: string): void {
+    if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+      throw new CloudflareError({ kind: 'invalid_input', message: `a ${what} list limit must be a positive integer` });
+    }
+  }
+
   const recordsPath = (zoneId: string): string => `/zones/${encodeURIComponent(zoneId)}/dns_records`;
+
+  function toRecord(item: unknown, zoneName: string, operation: string): ObservedRecord {
+    const record = parse(recordSchema, item, operation);
+    return {
+      recordId: record.id,
+      type: record.type,
+      name: toRelativeName(record.name, zoneName),
+      content: record.content ?? '',
+      ttlSeconds: fromCloudflareTtl(record.ttl),
+      priority: record.priority ?? null,
+      proxied: record.proxied ?? false,
+      proxiable: record.proxiable ?? false
+    };
+  }
+
+  async function readRecords(
+    zone: { zoneId: string; zoneName: string },
+    operation: string,
+    query: Record<string, QueryValue>,
+    request_: RequestOptions,
+    pageLimit?: number,
+    itemLimit?: number
+  ): Promise<ObservedRecord[]> {
+    const items = await list(operation, recordsPath(zone.zoneId), query, RECORDS_PER_PAGE, request_, pageLimit, itemLimit);
+    return items.map((item) => toRecord(item, zone.zoneName, operation));
+  }
 
   async function applyOne(
     zoneId: string,
@@ -300,10 +358,9 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
       } catch (error) {
         if (
           error instanceof CloudflareError &&
-          error.codes.some((code) => CLOUDFLARE_RECORD_EXISTS_CODES.has(code)) &&
-          (await hasRecord(zoneId, zoneName, operation.record, request_))
+          error.codes.some((code) => CLOUDFLARE_RECORD_EXISTS_CODES.has(code))
         ) {
-          return outcome('already_present', null);
+          return settleRefusedCreate({ zoneId, zoneName }, operation.record, error, request_);
         }
         throw error;
       }
@@ -325,21 +382,119 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
     }
   }
 
-  /** "Already exists" also covers a conflicting record, so look before calling it converged. */
-  async function hasRecord(
-    zoneId: string,
-    zoneName: string,
+  /**
+   * A create refused because the name is taken is `already_present` only when
+   * that record is read back: type, name, content as DNS data, and priority for
+   * MX and SRV. TTL and proxying are reported, not required. Anything else at
+   * the name is an error that names it. The read is one name, a few pages; if
+   * it fails, its own error is thrown, so a transient failure stays one.
+   */
+  async function settleRefusedCreate(
+    zone: { zoneId: string; zoneName: string },
     record: DnsRecord,
+    refusal: CloudflareError,
     request_: RequestOptions
-  ): Promise<boolean> {
-    const found = await client.listRecords({ zoneId, zoneName }, request_);
-    const name = toRelativeName(record.name, zoneName);
-    return found.some(
+  ): Promise<DnsOperationResult> {
+    const fqdn = toFqdn(record.name, zone.zoneName);
+    const found = await readRecords(zone, 'records.verify', { 'name.exact': fqdn }, request_, READ_BACK_MAX_PAGES);
+    const name = toRelativeName(fqdn, zone.zoneName);
+    const atName = found.filter((candidate) => candidate.name.toLowerCase() === name);
+    const match = atName.find(
       (candidate) =>
-        candidate.type === record.type &&
-        candidate.name === (name === zoneName ? '@' : name) &&
-        candidate.content === record.content
+        candidate.type.toUpperCase() === record.type.toUpperCase() &&
+        normalizeContent(record.type, candidate.content) === normalizeContent(record.type, record.content) &&
+        (!PRIORITY_TYPES.has(record.type.toUpperCase()) || candidate.priority === record.priority)
     );
+    if (match === undefined) {
+      const holders = atName.slice(0, MAX_REPORTED_CONFLICTS).map(({ type, recordId }) => ({ type, recordId }));
+      throw new CloudflareError({
+        kind: refusal.kind,
+        message:
+          `Cloudflare refused to create the ${record.type} record "${record.name}": ` +
+          (holders.length === 0
+            ? 'it reports a record in the way but lists none at that name'
+            : `a different record holds that name (${holders.map(({ type }) => type).join(', ')})`),
+        ...(refusal.status === null ? {} : { status: refusal.status }),
+        operation: 'records.create',
+        codes: refusal.codes,
+        providerCode: refusal.providerCode,
+        detail: { ...refusal.detail, conflictingRecords: holders }
+      });
+    }
+    const differing: Array<'ttlSeconds' | 'proxied'> = [];
+    if (match.ttlSeconds !== record.ttlSeconds) differing.push('ttlSeconds');
+    if (match.proxied !== record.proxied) differing.push('proxied');
+    return {
+      kind: 'create',
+      type: record.type,
+      name: record.name,
+      status: 'already_present',
+      recordId: match.recordId,
+      ...(differing.length === 0 ? {} : { differingAttributes: differing })
+    };
+  }
+
+  type Swap = { deletes: Extract<DnsOperation, { kind: 'delete' }>[]; creates: Extract<DnsOperation, { kind: 'create' }>[] };
+
+  /** The group at `index` when it is deletes then creates: one batch. Anything else goes one by one. */
+  function swapAt(operations: readonly DnsOperation[], index: number): Swap | null {
+    const group = operations[index]?.group;
+    if (group === undefined) return null;
+    let end = index;
+    while (end < operations.length && operations[end]?.group === group) end += 1;
+    const members = operations.slice(index, end);
+    const firstCreate = members.findIndex((operation) => operation.kind === 'create');
+    if (firstCreate <= 0) return null;
+    const deletes = members.slice(0, firstCreate);
+    const creates = members.slice(firstCreate);
+    if (!deletes.every((operation) => operation.kind === 'delete')) return null;
+    if (!creates.every((operation) => operation.kind === 'create')) return null;
+    return { deletes, creates } as Swap;
+  }
+
+  /**
+   * `POST /dns_records/batch`: Cloudflare runs the deletes, then the posts, in
+   * one database transaction, so the name holds the old records or the new
+   * ones. Propagation to the edge is still per record.
+   */
+  async function applySwap(
+    zone: { zoneId: string; zoneName: string },
+    { deletes, creates }: Swap,
+    request_: RequestOptions
+  ): Promise<DnsOperationResult[]> {
+    const json = {
+      deletes: deletes.map(({ recordId }) => ({ id: recordId })),
+      posts: creates.map(({ record }) => recordBody(record, zone.zoneName))
+    };
+    const envelope = await request('records.batch', `${recordsPath(zone.zoneId)}/batch`, {
+      method: 'POST',
+      json,
+      ...request_
+    });
+    const posted = asRecord(envelope.result)?.['posts'];
+    // Read in request order; the schema does not promise it, and a missing id is null.
+    const ids = Array.isArray(posted)
+      ? posted.map((entry) => {
+          const id = asRecord(entry)?.['id'];
+          return typeof id === 'string' ? id : null;
+        })
+      : [];
+    return [
+      ...deletes.map(({ recordId, record }): DnsOperationResult => ({
+        kind: 'delete',
+        type: record.type,
+        name: record.name,
+        status: 'applied',
+        recordId
+      })),
+      ...creates.map(({ record }, position): DnsOperationResult => ({
+        kind: 'create',
+        type: record.type,
+        name: record.name,
+        status: 'applied',
+        recordId: ids[position] ?? null
+      }))
+    ];
   }
 
   const client: CloudflareDns = {
@@ -354,17 +509,22 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
         wildcardRecords: true,
         automaticTtl: true,
         minTtlSeconds: CLOUDFLARE_MIN_TTL_SECONDS,
-        maxTtlSeconds: CLOUDFLARE_MAX_TTL_SECONDS
+        maxTtlSeconds: CLOUDFLARE_MAX_TTL_SECONDS,
+        atomicGroups: true
       };
     },
 
-    async listZones({ name, ...request_ } = {}) {
+    async listZones({ name, limit, ...request_ } = {}) {
+      checkLimit(limit, 'zone');
       const items = await list(
         'zones.list',
         '/zones',
         { name, 'account.id': options.accountId },
-        ZONES_PER_PAGE,
-        request_
+        // Cloudflare accepts 5 to 50 zones per page.
+        Math.min(ZONES_PER_PAGE, Math.max(5, limit ?? ZONES_PER_PAGE)),
+        request_,
+        maxPages,
+        limit
       );
       return items.map((item) => toZone(item, 'zones.list'));
     },
@@ -379,30 +539,27 @@ export function createCloudflareDns(options: CloudflareDnsOptions): CloudflareDn
       return toZone(result, 'zones.get');
     },
 
-    async listRecords({ zoneId, zoneName }, request_ = {}) {
-      const items = await list('records.list', recordsPath(zoneId), {}, RECORDS_PER_PAGE, request_);
-      return items.map((item): ObservedRecord => {
-        const record = parse(recordSchema, item, 'records.list');
-        return {
-          recordId: record.id,
-          type: record.type,
-          name: toRelativeName(record.name, zoneName),
-          content: record.content ?? '',
-          ttlSeconds: fromCloudflareTtl(record.ttl),
-          priority: record.priority ?? null,
-          proxied: record.proxied ?? false,
-          proxiable: record.proxiable ?? false
-        };
-      });
+    async listRecords(zone, { limit, ...request_ } = {}) {
+      checkLimit(limit, 'record');
+      return readRecords(zone, 'records.list', {}, request_, maxPages, limit);
     },
 
     async apply({ zoneId, zoneName }, operations, request_ = {}) {
       const done: DnsOperationResult[] = [];
-      for (const operation of operations) {
+      for (let index = 0; index < operations.length; ) {
+        const operation = operations[index]!;
+        const swap = swapAt(operations, index);
         try {
-          done.push(await applyOne(zoneId, zoneName, operation, request_));
+          if (swap === null) {
+            done.push(await applyOne(zoneId, zoneName, operation, request_));
+            index += 1;
+          } else {
+            done.push(...(await applySwap({ zoneId, zoneName }, swap, request_)));
+            index += swap.deletes.length + swap.creates.length;
+          }
         } catch (error) {
-          throw new DnsApplyError(done, operation, error);
+          // A failed batch changed nothing, so only what came before it is done.
+          throw new DnsApplyError([...done], operation, error);
         }
       }
       return done;

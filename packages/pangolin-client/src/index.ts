@@ -133,7 +133,7 @@ export interface RuleInput {
 
 export interface PangolinProbe {
   authenticated: boolean;
-  /** Sites in the configured org, or visible orgs when none is configured. */
+  /** All sites in the configured org, or all visible orgs when none is configured. */
   count: number | null;
 }
 
@@ -163,8 +163,43 @@ export interface PangolinClient {
 
 type Paging = 'page' | 'offset';
 
-const PAGE_SIZE = 500;
-const MAX_PAGES = 50;
+interface ListShape {
+  /** The field the rows are nested under. */
+  key: string;
+  /** The row's identity, to recognize a repeated row. */
+  idField: string;
+  paging: Paging;
+}
+
+const LISTS = {
+  orgs: { key: 'orgs', idField: 'orgId', paging: 'offset' },
+  sites: { key: 'sites', idField: 'siteId', paging: 'page' },
+  resources: { key: 'resources', idField: 'resourceId', paging: 'page' },
+  targets: { key: 'targets', idField: 'targetId', paging: 'offset' },
+  rules: { key: 'rules', idField: 'ruleId', paging: 'offset' },
+  domains: { key: 'domains', idField: 'domainId', paging: 'offset' }
+} as const satisfies Record<string, ListShape>;
+
+function rowKey(row: unknown, idField: string): string {
+  const id = typeof row === 'object' && row !== null ? (row as Record<string, unknown>)[idField] : undefined;
+  return typeof id === 'string' || typeof id === 'number' ? `id:${id}` : `row:${JSON.stringify(row)}`;
+}
+
+/** `pagination.total`, or null when absent. Some handlers count with an uncast SQL bigint, sent as a string. */
+function paginationTotal(data: unknown): number | null {
+  const pagination = ((data ?? {}) as Record<string, unknown>)['pagination'];
+  if (typeof pagination !== 'object' || pagination === null) return null;
+  const raw = (pagination as Record<string, unknown>)['total'];
+  const total = typeof raw === 'string' && /^\d{1,15}$/.test(raw) ? Number(raw) : raw;
+  return typeof total === 'number' && Number.isSafeInteger(total) && total >= 0 ? total : null;
+}
+
+/** Rows asked for per list page. */
+export const PANGOLIN_LIST_PAGE_SIZE = 500;
+/** The most pages a list may take before it is an error. */
+export const PANGOLIN_MAX_LIST_PAGES = 50;
+const PAGE_SIZE = PANGOLIN_LIST_PAGE_SIZE;
+const MAX_PAGES = PANGOLIN_MAX_LIST_PAGES;
 const segment = encodeURIComponent;
 
 /**
@@ -257,39 +292,64 @@ export function createPangolinClient(options: PangolinOptions): PangolinClient {
   /**
    * Reads a whole list. Pangolin has two paging styles: sites and resources
    * default to 20 rows by `page`/`pageSize`, the rest to 1000 by
-   * `limit`/`offset` and reject unknown parameters.
+   * `limit`/`offset` and reject unknown parameters. A list ends when the rows
+   * reach its total or, without a total, at a short page. A page of nothing but
+   * rows already seen means paging was ignored, and is an error rather than a
+   * list that looks complete.
    */
-  async function list<T>(
+  async function readAll(
     operation: string,
     path: string,
-    key: string,
-    paging: Paging,
-    parse: (row: unknown) => T | null,
+    { key, idField, paging }: ListShape,
     { signal }: RequestOptions
-  ): Promise<T[]> {
+  ): Promise<unknown[]> {
     const rows: unknown[] = [];
+    const seen = new Set<string>();
+    let received = 0;
     for (let page = 1; page <= MAX_PAGES; page += 1) {
       const data = await request(operation, path, {
-        query:
-          paging === 'page' ? { pageSize: PAGE_SIZE, page } : { limit: PAGE_SIZE, offset: rows.length },
+        query: paging === 'page' ? { pageSize: PAGE_SIZE, page } : { limit: PAGE_SIZE, offset: received },
         ...(signal ? { signal } : {})
       });
-      const record = (data ?? {}) as Record<string, unknown>;
-      const items = record[key];
-      if (!Array.isArray(items)) throw unreadable(operation);
-      rows.push(...(items as unknown[]));
-      // Some handlers count with an uncast SQL bigint, which arrives as a string.
-      const rawTotal = (record['pagination'] as Record<string, unknown> | null | undefined)?.['total'];
-      const total = rawTotal === undefined || rawTotal === null ? Number.NaN : Number(rawTotal);
-      if (!Number.isFinite(total) || items.length === 0 || rows.length >= total) {
-        return readRows(rows, parse, operation);
+      const items = listItems(data, key, operation);
+      // Only rows of earlier pages count as repeats: rows can shift between reads.
+      const fresh = items.filter((row) => !seen.has(rowKey(row, idField)));
+      if (items.length > 0 && fresh.length === 0) {
+        throw new PangolinError({
+          kind: 'invalid_response',
+          message: `Pangolin repeated the same rows for the next page of ${operation}, so the list could not be completed`,
+          operation
+        });
       }
+      for (const row of fresh) {
+        rows.push(row);
+        seen.add(rowKey(row, idField));
+      }
+      received += items.length;
+      const total = paginationTotal(data);
+      if (items.length === 0 || (total === null ? items.length < PAGE_SIZE : received >= total)) return rows;
     }
     throw new PangolinError({
       kind: 'invalid_response',
       message: `a Pangolin list did not end within ${MAX_PAGES} pages`,
       operation
     });
+  }
+
+  async function list<T>(
+    operation: string,
+    path: string,
+    shape: ListShape,
+    parse: (row: unknown) => T | null,
+    request_: RequestOptions
+  ): Promise<T[]> {
+    return readRows(await readAll(operation, path, shape, request_), parse, operation);
+  }
+
+  function listItems(data: unknown, key: string, operation: string): unknown[] {
+    const items = ((data ?? {}) as Record<string, unknown>)[key];
+    if (!Array.isArray(items)) throw unreadable(operation);
+    return items as unknown[];
   }
 
   function org(orgId: string | undefined): string {
@@ -343,17 +403,18 @@ export function createPangolinClient(options: PangolinOptions): PangolinClient {
   return {
     async probe(request_ = {}) {
       const byOrg = options.orgId !== undefined;
+      const operation = byOrg ? 'sites.list' : 'orgs.list';
+      const path = byOrg ? `${org(undefined)}/sites` : '/orgs';
+      const shape = byOrg ? LISTS.sites : LISTS.orgs;
       try {
-        const data = await request(
-          byOrg ? 'sites.list' : 'orgs.list',
-          byOrg ? `${org(undefined)}/sites` : '/orgs',
-          { query: byOrg ? { pageSize: 1, page: 1 } : { limit: 1, offset: 0 }, ...request_ }
-        );
-        const record = (data ?? {}) as Record<string, unknown>;
-        const items = record[byOrg ? 'sites' : 'orgs'];
-        if (!Array.isArray(items)) throw unreadable('probe');
-        const total = Number((record['pagination'] as Record<string, unknown> | undefined)?.['total']);
-        return { authenticated: true, count: Number.isFinite(total) ? total : items.length };
+        const data = await request(operation, path, {
+          query: byOrg ? { pageSize: 1, page: 1 } : { limit: 1, offset: 0 },
+          ...request_
+        });
+        listItems(data, shape.key, operation);
+        // Without a total, only reading the whole list gives the count.
+        const count = paginationTotal(data) ?? (await readAll(operation, path, shape, request_)).length;
+        return { authenticated: true, count };
       } catch (error) {
         if (error instanceof PangolinError && ['unauthorized', 'forbidden'].includes(error.kind)) {
           return { authenticated: false, count: null };
@@ -362,10 +423,10 @@ export function createPangolinClient(options: PangolinOptions): PangolinClient {
       }
     },
 
-    listOrgs: (request_ = {}) => list('orgs.list', '/orgs', 'orgs', 'offset', parseOrg, request_),
+    listOrgs: (request_ = {}) => list('orgs.list', '/orgs', LISTS.orgs, parseOrg, request_),
 
     listSites: async (orgId, request_ = {}) =>
-      list('sites.list', `${org(orgId)}/sites`, 'sites', 'page', parseSite, request_),
+      list('sites.list', `${org(orgId)}/sites`, LISTS.sites, parseSite, request_),
 
     getSite: async (id, orgId, request_ = {}) =>
       getOrNull(
@@ -376,19 +437,19 @@ export function createPangolinClient(options: PangolinOptions): PangolinClient {
       ),
 
     listResources: async (orgId, request_ = {}) =>
-      list('resources.list', `${org(orgId)}/resources`, 'resources', 'page', parseResource, request_),
+      list('resources.list', `${org(orgId)}/resources`, LISTS.resources, parseResource, request_),
 
     getResource: (id, request_ = {}) =>
       getOrNull('resources.get', `/resource/${segment(id)}`, parseResource, request_),
 
     listTargets: (resourceId, request_ = {}) =>
-      list('targets.list', `/resource/${segment(resourceId)}/targets`, 'targets', 'offset', parseTarget, request_),
+      list('targets.list', `/resource/${segment(resourceId)}/targets`, LISTS.targets, parseTarget, request_),
 
     listRules: (resourceId, request_ = {}) =>
-      list('rules.list', `/resource/${segment(resourceId)}/rules`, 'rules', 'offset', parseRule, request_),
+      list('rules.list', `/resource/${segment(resourceId)}/rules`, LISTS.rules, parseRule, request_),
 
     listDomains: async (orgId, request_ = {}) =>
-      list('domains.list', `${org(orgId)}/domains`, 'domains', 'offset', parseDomain, request_),
+      list('domains.list', `${org(orgId)}/domains`, LISTS.domains, parseDomain, request_),
 
     async listDomainDnsRecords(domainId, orgId, request_ = {}) {
       const operation = 'domains.dnsRecords';

@@ -1,6 +1,6 @@
 {
   "name": "@formless63/cloudflare-dns",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cloudflare zones and DNS records as a typed DNS provider.",
   "keywords": [
     "cloudflare",
