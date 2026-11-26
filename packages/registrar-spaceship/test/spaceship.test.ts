@@ -298,8 +298,17 @@ describe("createSpaceshipRegistrar", () => {
     expect((await caught(shape.c.probe())).kind).toBe("invalid_response");
     const big = client({ "/domains?take=1&skip=0": { status: 200, text: " ".repeat(1_000_001) } });
     const error = await caught(big.c.probe());
-    expect(error.kind).toBe("invalid_response");
+    expect(error).toMatchObject({ kind: "invalid_response", status: 200 });
     expect(error.message).toMatch(/too large/);
+  });
+
+  it.each([
+    [401, "unauthorized"],
+    [429, "rate_limited"],
+    [503, "unavailable"],
+  ])("classifies an oversized HTTP %i answer by its status", async (status, kind) => {
+    const big = client({ "/domains?take=1&skip=0": { status, text: " ".repeat(1_000_001) } });
+    expect(await caught(big.c.probe())).toMatchObject({ kind, status });
   });
 
   it("times out with a null status", async () => {

@@ -11,6 +11,7 @@ function ipv4Value(address: string): number | null {
   return value;
 }
 
+/** Loopback, private, shared, link-local, multicast, documentation and reserved ranges. */
 const PRIVATE_V4: ReadonlyArray<readonly [base: string, prefix: number]> = [
   ['0.0.0.0', 8],
   ['10.0.0.0', 8],
@@ -19,8 +20,12 @@ const PRIVATE_V4: ReadonlyArray<readonly [base: string, prefix: number]> = [
   ['169.254.0.0', 16],
   ['172.16.0.0', 12],
   ['192.0.0.0', 24],
+  ['192.0.2.0', 24],
+  ['192.88.99.0', 24],
   ['192.168.0.0', 16],
   ['198.18.0.0', 15],
+  ['198.51.100.0', 24],
+  ['203.0.113.0', 24],
   ['224.0.0.0', 4],
   ['240.0.0.0', 4]
 ];
@@ -57,21 +62,27 @@ function ipv6Value(address: string): bigint | null {
 
 function isPrivateV6(value: bigint): boolean {
   const top = (bits: bigint): bigint => value >> (128n - bits);
-  if (value <= 1n) return true; // :: and ::1
-  if (top(7n) === 0x7en) return true; // fc00::/7 unique local
-  if (top(10n) === 0x3fan) return true; // fe80::/10 link local
-  if (top(8n) === 0xffn) return true; // ff00::/8 multicast
-  const low32 = Number(value & 0xffffffffn);
-  if (top(96n) === 0xffffn) return isPrivateV4(low32); // ::ffff:0:0/96 mapped
-  if (top(96n) === 0n) return isPrivateV4(low32); // ::/96 compatible
-  if (top(96n) === 0x64ff9b0000000000000000n) return isPrivateV4(low32); // 64:ff9b::/96 NAT64
-  return false;
+  const v4At = (shift: bigint): number => Number((value >> shift) & 0xffffffffn);
+  // Forms that carry an IPv4 address are judged by that address.
+  if (top(96n) === 0xffffn) return isPrivateV4(v4At(0n)); // ::ffff:0:0/96 mapped
+  if (top(96n) === 0x64ff9bn << 64n) return isPrivateV4(v4At(0n)); // 64:ff9b::/96 NAT64
+  if (top(16n) === 0x2002n) return isPrivateV4(v4At(80n)); // 2002::/16 6to4
+  // Only 2000::/3 is global unicast. This refuses ::, ::1, IPv4-compatible,
+  // unique-local, link-local, site-local, multicast and local-use NAT64.
+  if (top(3n) !== 1n) return true;
+  if (top(23n) === 0x20010000n >> 9n) return true; // 2001::/23: Teredo and other special use
+  if (top(32n) === 0x20010db8n) return true; // 2001:db8::/32 documentation
+  return top(20n) === 0x3fff0n; // 3fff::/20 documentation
 }
 
 /**
- * Whether a host is an address or name that only means something locally:
- * loopback, private, shared (CGNAT), link-local, unique-local and multicast
- * ranges, plus `localhost`, `.local`, `.internal`, `.home.arpa` and bare names.
+ * Whether a host is an address or name that only means something locally, or
+ * is not a public unicast address: loopback, private, shared (CGNAT),
+ * link-local, unique-local, multicast, documentation and reserved ranges (in
+ * IPv6, anything outside global unicast `2000::/3`, with mapped, NAT64 and
+ * 6to4 addresses judged by their IPv4 part), plus `localhost`, `.local`,
+ * `.internal`, `.home.arpa` and bare names. Pass a `URL.hostname`, which
+ * already turns odd IPv4 spellings (`127.1`, `0x7f000001`) into dotted form.
  *
  * Names are not resolved. A public name that resolves to a private address
  * passes; block that with an egress policy or a checking resolver.

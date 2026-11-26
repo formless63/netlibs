@@ -262,7 +262,12 @@ describe("createNamecheapRegistrar", () => {
       "invalid_response",
     );
     const big = await caught(client(() => ({ text: " ".repeat(1_000_001) })).c.probe());
+    expect(big).toMatchObject({ kind: "invalid_response", status: 200 });
     expect(big.message).toMatch(/too large/);
+    const bigRefusal = await caught(client(() => ({ status: 503, text: " ".repeat(1_000_001) })).c.probe());
+    expect(bigRefusal).toMatchObject({ kind: "unavailable", status: 503 });
+    const bigLimit = await caught(client(() => ({ status: 429, text: " ".repeat(1_000_001) })).c.probe());
+    expect(bigLimit).toMatchObject({ kind: "rate_limited", status: 429 });
     const noPaging = fixture("getlist-page1.xml").replace(/<Paging>.*<\/Paging>/, "");
     expect((await caught(client(() => ({ text: noPaging })).c.probe())).kind).toBe(
       "invalid_response",

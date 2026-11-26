@@ -8,7 +8,9 @@ const resources = await pangolin.listResources();
 ```
 
 - `baseUrl` is the Integration API's own origin (a separate server, usually port 3003), not the dashboard.
-- Reads: orgs, sites, resources, targets, rules, domains, DNS records. Lists are read to the end.
+- Reads: orgs, sites, resources, targets, rules, domains, DNS records. Lists are read to the end, or fail: a
+  list that never ends, or a server that ignores paging and repeats rows, is an error, not a partial list.
+  `probe` counts every site (or org), not just the first page.
 - Writes: create resource, target and rule; update rule. **Creates are not idempotent**: read back before
   repeating one that failed ambiguously. Nothing is ever deleted.
 - An update must send the whole rule; omitting `priority` would reorder evaluation.

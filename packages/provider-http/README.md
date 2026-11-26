@@ -26,9 +26,11 @@ const body = result.json();
 ```
 
 `request` resolves for any HTTP status and rejects only without a usable response: `timeout`, `aborted`,
-`unavailable`, `rate_limited` (local budget) or `invalid_response` (too large). Redirects are refused.
+`unavailable`, `rate_limited` (local budget) or `invalid_response` (a success answer that is too large). An
+error answer that is too large resolves with its status and an empty `text`. Redirects are refused.
 
-Also exported: `normalizeBaseUrl`, `isPrivateHost` (literals and special names; it does not resolve DNS),
+Also exported: `normalizeBaseUrl`, `isPrivateHost` (address literals outside public unicast, and local names; it does not resolve DNS),
+`isLoopbackHost`,
 `parseRetryAfter`, `safeProviderText`, `readBounded`, `sleep`.
 
 `retryable` means the request might succeed later. It does not mean repeating a write is safe.
