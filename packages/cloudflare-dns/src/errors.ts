@@ -68,8 +68,13 @@ export function envelopeCodes(envelope: CloudflareEnvelope): number[] {
 export const CLOUDFLARE_AUTH_CODES: ReadonlySet<number> = new Set([10_000, 10_001, 6003, 6111, 9106, 9107]);
 /** "No route for the URI". */
 export const CLOUDFLARE_NO_ROUTE_CODE = 7003;
-/** "Record already exists". Observed, not documented; used only to converge a repeated create. */
-export const CLOUDFLARE_RECORD_EXISTS_CODES: ReadonlySet<number> = new Set([81_053, 81_057, 81_058]);
+/**
+ * A create refused because something holds the name. Observed, not documented:
+ * 81053 (an A, AAAA or CNAME exists there), 81054 (a CNAME exists there),
+ * 81057 (the record exists), 81058 (an identical record exists). 81053 and
+ * 81054 also cover a different record, so a code only prompts a read-back.
+ */
+export const CLOUDFLARE_RECORD_EXISTS_CODES: ReadonlySet<number> = new Set([81_053, 81_054, 81_057, 81_058]);
 
 export function cloudflareErrorKind(status: number, codes: readonly number[]): ProviderErrorKind {
   if (status === 403) return 'forbidden';
