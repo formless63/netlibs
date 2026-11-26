@@ -268,6 +268,82 @@ describe("safety", () => {
     expect(calls.filter((url) => url === BOOT)).toHaveLength(2);
   });
 
+  it("refuses a private host that the bootstrap file names, as the server's fault", async () => {
+    const fetch: FetchLike = async () => new Response(JSON.stringify({ services: [[["example"], ["https://10.0.0.5/rdap/"]]] }));
+    await expect(createRdapClient({ fetch, bootstrapUrl: BOOT }).lookup("a.example")).rejects.toMatchObject({
+      kind: "invalid_response",
+      code: "refused_server",
+    });
+    await expect(createRdapClient({ fetch, bootstrapUrl: "https://10.0.0.5/dns.json" }).lookup("a.example")).rejects.toMatchObject({
+      kind: "invalid_input",
+    });
+  });
+
+  it("with resolveHost, refuses every hop whose name resolves to a private address, before asking it", async () => {
+    const asked: string[] = [];
+    const resolveHost = async (host: string) => {
+      asked.push(host);
+      return host === "rdap-2.example.invalid" ? ["203.0.114.1", "fd00::1"] : ["203.0.114.1"];
+    };
+    const ok = client(() => ({ status: 200, body: domainObject() }), { resolveHost });
+    expect((await ok.client.lookup("sample.example")).name).toBe("sample.example");
+    expect(asked).toEqual(["bootstrap.example.invalid", "rdap.example.invalid"]);
+
+    const moved = client(() => ({ status: 302, location: "https://rdap-2.example.invalid/x" }), { resolveHost });
+    await expect(moved.client.lookup("sample.example")).rejects.toMatchObject({ code: "refused_redirect" });
+    expect(moved.calls).toEqual([BOOT, DOMAIN_URL]);
+
+    const named = createRdapClient({
+      fetch: async () => new Response(JSON.stringify({ services: [[["example"], ["https://rdap-2.example.invalid/"]]] })),
+      bootstrapUrl: BOOT,
+      resolveHost,
+    });
+    await expect(named.lookup("a.example")).rejects.toMatchObject({ kind: "invalid_response", code: "refused_server" });
+
+    const start = createRdapClient({ fetch: async () => new Response("{}"), bootstrapUrl: "https://rdap-2.example.invalid/dns.json", resolveHost });
+    await expect(start.lookup("a.example")).rejects.toMatchObject({ kind: "invalid_input" });
+  });
+
+  it("does not resolve address literals, and treats a failed or stalled resolver as the server being unreachable", async () => {
+    const asked: string[] = [];
+    const literal = createRdapClient({
+      fetch: async (url) =>
+        new Response(url.endsWith("dns.json") ? JSON.stringify({ services: [[["example"], ["https://[2600::1]/"]]] }) : JSON.stringify(domainObject())),
+      bootstrapUrl: "https://203.0.114.1/dns.json",
+      resolveHost: async (host) => {
+        asked.push(host);
+        return [];
+      },
+    });
+    await literal.lookup("sample.example");
+    expect(asked).toEqual([]);
+
+    const failing = client(() => ({ status: 200 }), { resolveHost: async () => Promise.reject(new Error("ENOTFOUND")) });
+    await expect(failing.client.lookup("sample.example")).rejects.toMatchObject({ kind: "unavailable" });
+    expect(failing.calls).toEqual([]);
+
+    const stalled = client(() => ({ status: 200 }), { timeoutMs: 20, resolveHost: () => new Promise<string[]>(() => undefined) });
+    await expect(stalled.client.lookup("sample.example")).rejects.toMatchObject({ kind: "timeout" });
+  });
+
+  it("applies one timeout to a request and all its redirects", async () => {
+    const fetch: FetchLike = async (url, init) => {
+      if (url === BOOT) return new Response(JSON.stringify(BOOTSTRAP));
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, 40);
+        init.signal.addEventListener("abort", () => {
+          clearTimeout(timer);
+          reject(new Error("aborted"));
+        });
+      });
+      return new Response(null, { status: 302, headers: { location: `${url}x` } });
+    };
+    await expect(createRdapClient({ fetch, bootstrapUrl: BOOT, timeoutMs: 100 }).lookup("sample.example")).rejects.toMatchObject({
+      kind: "timeout",
+      message: expect.stringMatching(/within 100 ms/),
+    });
+  });
+
   it("maps EPP wording and internationalized names", async () => {
     expect(normalizeRdapDomain(domainObject({ status: ["ok", "clientHold"] }), "u").status).toEqual(["active", "client hold"]);
     const { client: c, calls } = client(() => ({ status: 200, body: domainObject() }));

@@ -24,8 +24,35 @@ export interface RdapClientOptions {
   maxRedirects?: number;
   /** Permit `http:` and loopback hosts, for tests and local mocks. */
   allowLoopbackHttp?: boolean;
+  /**
+   * Resolves a host name to its addresses, so a server whose name points at a
+   * private address is refused before it is asked. Called for every hop that
+   * names a host, within the request's timeout; a failure counts as the server
+   * being unreachable. Without it, names are not resolved. Either way `fetch`
+   * resolves the name again when it connects, so a server that changes its DNS
+   * answer in between (rebinding) is not stopped: only an egress policy does that.
+   */
+  resolveHost?: (hostname: string, options: { signal: AbortSignal }) => Promise<readonly string[]>;
   userAgent?: string;
   now?: () => number;
+}
+
+/** Who named a URL: the caller, the bootstrap file, or a redirect. */
+type UrlSource = 'caller' | 'bootstrap' | 'redirect';
+
+/** Whether a `URL.hostname` is an address literal, so there is nothing to resolve. */
+function isAddressLiteral(hostname: string): boolean {
+  return hostname.startsWith('[') || /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname);
+}
+
+/** Settles with `work`, or rejects as soon as the signal aborts. */
+function untilAborted<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = (): void => reject(signal.reason as Error);
+    if (signal.aborted) onAbort();
+    signal.addEventListener('abort', onAbort, { once: true });
+    work.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
 }
 
 export interface RdapClient {
@@ -36,7 +63,9 @@ export interface RdapClient {
 /**
  * A read-only RDAP client. No credential is involved. Servers are third
  * parties chosen by IANA data and redirects, so every hop must be https to a
- * public host, and responses are bounded in size and time.
+ * public host (see `resolveHost` to also check where a name points), and
+ * responses are bounded in size and time. One timeout covers a request with
+ * all its redirects.
  */
 export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
   const doFetch: FetchLike = options.fetch ?? ((url, init) => globalThis.fetch(url, init));
@@ -53,13 +82,38 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
   };
   let bootstrap: { loadedAt: number; value: Promise<unknown> } | null = null;
 
-  function checkUrl(input: string, redirected: boolean): URL {
+  const resolveHost = options.resolveHost;
+
+  /** One request's deadline and cancellation, redirects included. */
+  interface Deadline {
+    signal: AbortSignal;
+    failed(): RdapError;
+  }
+
+  function deadline(caller: AbortSignal | undefined): Deadline {
+    const timeout = AbortSignal.timeout(timeoutMs);
+    return {
+      signal: caller ? AbortSignal.any([timeout, caller]) : timeout,
+      failed() {
+        if (caller?.aborted) return new RdapError({ kind: 'aborted', message: 'the RDAP lookup was aborted' });
+        if (timeout.aborted) {
+          return new RdapError({ kind: 'timeout', message: `the RDAP server did not answer within ${timeoutMs} ms` });
+        }
+        return new RdapError({ kind: 'unavailable', message: 'the RDAP server could not be reached' });
+      }
+    };
+  }
+
+  /** Validates one hop before anything is sent to it. Messages never echo the URL. */
+  async function checkUrl(input: string, source: UrlSource, limit: Deadline): Promise<URL> {
     const refuse = (why: string): never => {
-      throw new RdapError({
-        kind: redirected ? 'invalid_response' : 'invalid_input',
-        message: `refusing ${redirected ? 'an RDAP redirect to' : 'an RDAP URL with'} ${why}`,
-        ...(redirected ? { code: 'refused_redirect' as const } : {})
-      });
+      throw new RdapError(
+        source === 'caller'
+          ? { kind: 'invalid_input', message: `refusing an RDAP URL with ${why}` }
+          : source === 'redirect'
+            ? { kind: 'invalid_response', message: `refusing an RDAP redirect to ${why}`, code: 'refused_redirect' }
+            : { kind: 'invalid_response', message: `refusing an RDAP server at ${why}`, code: 'refused_server' }
+      );
     };
     let url: URL;
     try {
@@ -70,34 +124,34 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
     const loopback = allowLoopback && isLoopbackHost(url.hostname);
     if (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) refuse('a non-https address');
     if (url.username !== '' || url.password !== '') refuse('embedded credentials');
-    if (!loopback && isPrivateHost(url.hostname)) refuse('a private host');
+    if (loopback) return url;
+    if (isPrivateHost(url.hostname)) refuse('a private host');
+    if (resolveHost && !isAddressLiteral(url.hostname)) {
+      let addresses: readonly string[];
+      try {
+        addresses = await untilAborted(resolveHost(url.hostname, { signal: limit.signal }), limit.signal);
+      } catch {
+        throw limit.failed();
+      }
+      if (addresses.some((address) => isPrivateHost(address))) refuse('a host that resolves to a private address');
+    }
     return url;
   }
 
   async function getJson(
     start: string,
+    source: Exclude<UrlSource, 'redirect'>,
     caller: AbortSignal | undefined
   ): Promise<{ status: number; body: unknown; url: string }> {
-    const timeout = AbortSignal.timeout(timeoutMs);
-    const signal = caller ? AbortSignal.any([timeout, caller]) : timeout;
-    const transportError = (): RdapError => {
-      if (caller?.aborted) return new RdapError({ kind: 'aborted', message: 'the RDAP lookup was aborted' });
-      if (timeout.aborted) {
-        return new RdapError({
-          kind: 'timeout',
-          message: `the RDAP server did not answer within ${timeoutMs} ms`
-        });
-      }
-      return new RdapError({ kind: 'unavailable', message: 'the RDAP server could not be reached' });
-    };
-
-    let url = checkUrl(start, false);
+    const limit = deadline(caller);
+    const { signal } = limit;
+    let url = await checkUrl(start, source, limit);
     for (let hop = 0; ; hop += 1) {
       let response: FetchResponse;
       try {
         response = await doFetch(url.href, { method: 'GET', headers, signal, redirect: 'manual' });
       } catch {
-        throw transportError();
+        throw limit.failed();
       }
       const { status } = response;
       const location = response.headers?.get('location') ?? null;
@@ -116,7 +170,7 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
         } catch {
           next = location;
         }
-        url = checkUrl(next, true);
+        url = await checkUrl(next, 'redirect', limit);
         continue;
       }
       if (status === 404) {
@@ -139,7 +193,7 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
       try {
         text = await readBounded(response, maxBytes);
       } catch {
-        if (signal.aborted) throw transportError();
+        if (signal.aborted) throw limit.failed();
         throw new RdapError({
           kind: 'invalid_response',
           message: `the RDAP answer could not be read or is too large (over ${maxBytes} bytes)`,
@@ -159,7 +213,7 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
       // Shared by concurrent lookups, so one caller's abort must not fail the others.
       bootstrap = {
         loadedAt: now(),
-        value: getJson(bootstrapUrl, undefined).then(({ status, body }) => {
+        value: getJson(bootstrapUrl, 'caller', undefined).then(({ status, body }) => {
           if (status === 404) {
             throw new RdapError({
               kind: 'unavailable',
@@ -206,7 +260,7 @@ export function createRdapClient(options: RdapClientOptions = {}): RdapClient {
           message: `no RDAP service is registered for .${name.split('.').at(-1)}`
         });
       }
-      const answer = await getJson(`${base}domain/${encodeURIComponent(name)}`, signal);
+      const answer = await getJson(`${base}domain/${encodeURIComponent(name)}`, 'bootstrap', signal);
       if (answer.status === 404) {
         throw new RdapError({
           kind: 'not_found',

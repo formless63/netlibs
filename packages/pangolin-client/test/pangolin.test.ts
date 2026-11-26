@@ -73,12 +73,13 @@ describe('lists', () => {
     expect(query(1)).toEqual({ pageSize: '500', page: '2' });
   });
   it.each([
-    ['listOrgs', 'orgs', '/v1/orgs', [], { orgId: 'o' }],
-    ['listDomains', 'domains', '/v1/org/acme/domains', [], { domainId: 'd' }],
-    ['listTargets', 'targets', '/v1/resource/10/targets', ['10'], { targetId: 1 }],
-    ['listRules', 'rules', '/v1/resource/10/rules', ['10'], { ruleId: 1 }]
-  ])('%s pages by offset, which those strict handlers require', async (method, key, expected, args, row) => {
-    const { client, path, query } = setup([page(key as string, [row, row], '3'), page(key as string, [row], '3')]);
+    ['listOrgs', 'orgs', '/v1/orgs', [], 'orgId', (i: number) => `o${i}`],
+    ['listDomains', 'domains', '/v1/org/acme/domains', [], 'domainId', (i: number) => `d${i}`],
+    ['listTargets', 'targets', '/v1/resource/10/targets', ['10'], 'targetId', (i: number) => i],
+    ['listRules', 'rules', '/v1/resource/10/rules', ['10'], 'ruleId', (i: number) => i]
+  ])('%s pages by offset, which those strict handlers require', async (method, key, expected, args, idField, id) => {
+    const row = (i: number) => ({ [idField as string]: (id as (i: number) => unknown)(i) });
+    const { client, path, query } = setup([page(key as string, [row(1), row(2)], '3'), page(key as string, [row(3)], '3')]);
     const call = (client as unknown as Record<string, (...a: unknown[]) => Promise<unknown[]>>)[method as string]!;
     expect(await call(...(args as unknown[]))).toHaveLength(3);
     expect([path(0), query(0), query(1)]).toEqual([expected as string, { limit: '500', offset: '0' }, { limit: '500', offset: '2' }]);
@@ -90,6 +91,27 @@ describe('lists', () => {
     expect(skipped).toEqual([{ operation: 'orgs.list', index: 1 }]);
     expect(calls).toHaveLength(1);
   });
+  it('without a total, reads on after a full page and stops at a short one', async () => {
+    const rows = (from: number, n: number) => Array.from({ length: n }, (_, i) => ({ siteId: from + i }));
+    const { client, calls, query } = setup([env({ sites: rows(1, 500) }), env({ sites: rows(501, 3) })]);
+    expect(await client.listSites()).toHaveLength(503);
+    expect(calls).toHaveLength(2);
+    expect(query(1)).toEqual({ pageSize: '500', page: '2' });
+  });
+  it('fails rather than looping or returning a partial list when paging is ignored', async () => {
+    const rows = Array.from({ length: 500 }, (_, i) => ({ siteId: i }));
+    const error = await caught(setup([env({ sites: rows }), env({ sites: rows })]).client.listSites());
+    expect(error).toMatchObject({ kind: 'invalid_response', operation: 'sites.list' });
+    expect(error.message).toContain('repeated');
+    const endless = Array.from({ length: 60 }, (_, n) => page('orgs', [{ orgId: `o${n}` }], 1000));
+    expect((await caught(setup(endless).client.listOrgs())).message).toContain('did not end');
+  });
+  it('ignores a total that is not a count', async () => {
+    const { client, calls } = setup([page('orgs', [{ orgId: 'a' }], ''), page('orgs', [], '')]);
+    expect(await client.listOrgs()).toHaveLength(1);
+    expect(calls).toHaveLength(1);
+  });
+
   it('carries embedded targets', async () => {
     const { client } = setup([page('resources', [{ resourceId: 1, sso: 1, emailWhitelistEnabled: 0, targets: [{ targetId: 9, siteId: 4, siteName: 's', ip: 'app', port: 80, enabled: true }, 'garbage'] }])]);
     const [resource] = await client.listResources();
@@ -117,6 +139,13 @@ describe('single reads', () => {
     expect(await client.probe()).toEqual({ authenticated: true, count: 63 });
     expect(query(0)).toEqual({ pageSize: '1', page: '1' });
     expect(await setup([bad(403)]).client.probe()).toEqual({ authenticated: false, count: null });
+    const sites = Array.from({ length: 25 }, (_, i) => ({ siteId: i + 1 }));
+    const untotalled = setup([env({ sites: sites.slice(0, 1) }), env({ sites })]);
+    expect(await untotalled.client.probe()).toEqual({ authenticated: true, count: 25 });
+    expect(untotalled.query(1)).toEqual({ pageSize: '500', page: '1' });
+    const orgs = setup([env({ orgs: [{ orgId: 'a' }] }), env({ orgs: [{ orgId: 'a' }, { orgId: 'b' }] })], { orgId: undefined });
+    expect(await orgs.client.probe()).toEqual({ authenticated: true, count: 2 });
+    expect(orgs.query(0)).toEqual({ limit: '1', offset: '0' });
     expect((await caught(setup([bad(503)]).client.probe())).kind).toBe('unavailable');
   });
 });
