@@ -36,6 +36,15 @@
       "@formless63/pangolin-client": [
         "./packages/pangolin-client/src/index.ts"
       ],
+      "@formless63/json-redact": [
+        "./packages/json-redact/src/index.ts"
+      ],
+      "@formless63/recurring-costs": [
+        "./packages/recurring-costs/src/index.ts"
+      ],
+      "@formless63/purelymail-client": [
+        "./packages/purelymail-client/src/index.ts"
+      ],
       "@formless63/registrar/testing": [
         "./packages/registrar/src/testing.ts"
       ]
@@ -45,9 +54,12 @@
     "packages/cloudflare-dns/test",
     "packages/dns-plan/test",
     "packages/domain-intel/test",
+    "packages/json-redact/test",
     "packages/pangolin-client/test",
     "packages/provider-http/test",
+    "packages/purelymail-client/test",
     "packages/rdap/test",
+    "packages/recurring-costs/test",
     "packages/registrar/test",
     "packages/registrar-namecheap/test",
     "packages/registrar-spaceship/test",

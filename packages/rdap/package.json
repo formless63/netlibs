@@ -1,7 +1,6 @@
 {
   "name": "@formless63/rdap",
   "version": "0.1.0",
-  "private": true,
   "description": "RDAP domain lookups with IANA bootstrap, normalized to a small typed result.",
   "keywords": [
     "rdap",
@@ -10,6 +9,15 @@
     "iana"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/rdap"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/rdap#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -31,5 +39,8 @@
     "@formless63/domain-intel": "workspace:^",
     "@formless63/provider-http": "workspace:^",
     "zod": "^4.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

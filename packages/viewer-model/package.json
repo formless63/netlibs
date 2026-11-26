@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewer-model",
   "version": "0.1.0",
-  "private": true,
   "description": "3D model viewers: meshes via online-3d-viewer, GLB/glTF via model-viewer.",
   "keywords": [
     "react",
@@ -12,17 +11,21 @@
     "viewer"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-model"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-model#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewer-model"
   },
   "files": [
     "dist",
@@ -48,5 +51,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

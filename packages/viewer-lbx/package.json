@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewer-lbx",
   "version": "0.1.0",
-  "private": true,
   "description": "Brother P-touch .lbx label viewer.",
   "keywords": [
     "react",
@@ -11,17 +10,21 @@
     "label"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-lbx"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-lbx#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewer-lbx"
   },
   "files": [
     "dist",
@@ -47,5 +50,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -15,7 +15,15 @@ viewers, a rich-text editor and document utilities. Use one or combine several. 
 | [`dns-plan`](packages/dns-plan) | Compare desired and actual DNS records and plan safe changes | nothing |
 | [`cloudflare-dns`](packages/cloudflare-dns) | Read and change Cloudflare DNS | zod, `dns-plan`, `provider-http` |
 | [`pangolin-client`](packages/pangolin-client) | Use the Pangolin Integration API | zod, `provider-http` |
+| [`purelymail-client`](packages/purelymail-client) | Manage Purelymail mail domains, and plan their DNS records | zod, `dns-plan`, `provider-http` |
 | [`provider-http`](packages/provider-http) | Write a safe API client of your own | nothing |
+
+## Utilities
+
+| Package | Use it to | Depends on |
+| --- | --- | --- |
+| [`json-redact`](packages/json-redact) | Redact secret-named keys before logging or storing JSON | nothing |
+| [`recurring-costs`](packages/recurring-costs) | Total recurring prices exactly and project renewal dates | nothing |
 
 ## Rich text
 
@@ -55,7 +63,7 @@ libraries and share nothing with the domain packages. Guides: [API](docs/editor/
 Engines load only when a file of that kind is shown, and every import is safe on a server. Guides:
 [formats and limits](docs/viewers/formats.md), [integration](docs/viewers/integration.md).
 
-All names are under `@formless63/`. Not on npm yet; build tarballs with `bun run pack:all`.
+All names are under `@formless63/` on npm, e.g. `npm install @formless63/rdap`. Releases: [docs/releasing.md](docs/releasing.md).
 
 ## Composing the domain packages
 

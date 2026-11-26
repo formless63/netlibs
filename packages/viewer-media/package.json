@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewer-media",
   "version": "0.1.0",
-  "private": true,
   "description": "Image, text and sandboxed-HTML viewers.",
   "keywords": [
     "react",
@@ -9,17 +8,21 @@
     "viewer"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-media"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-media#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewer-media"
   },
   "files": [
     "dist",
@@ -42,5 +45,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

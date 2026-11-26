@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewers",
   "version": "0.1.0",
-  "private": true,
   "description": "Every file viewer behind one lazy registry.",
   "keywords": [
     "react",
@@ -10,17 +9,21 @@
     "file"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewers"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewers#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewers"
   },
   "files": [
     "dist",
@@ -50,5 +53,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

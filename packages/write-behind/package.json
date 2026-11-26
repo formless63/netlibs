@@ -1,7 +1,6 @@
 {
   "name": "@formless63/write-behind",
   "version": "0.1.0",
-  "private": true,
   "description": "Coalesced, serialized, retried persistence for in-memory state.",
   "keywords": [
     "persistence",
@@ -10,6 +9,15 @@
     "realtime"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/write-behind"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/write-behind#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -26,5 +34,8 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

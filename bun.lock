@@ -206,6 +206,10 @@
       "name": "@formless63/file-delivery",
       "version": "0.1.0",
     },
+    "packages/json-redact": {
+      "name": "@formless63/json-redact",
+      "version": "0.1.0",
+    },
     "packages/messy-table": {
       "name": "@formless63/messy-table",
       "version": "0.1.0",
@@ -222,6 +226,15 @@
       "name": "@formless63/provider-http",
       "version": "0.1.0",
     },
+    "packages/purelymail-client": {
+      "name": "@formless63/purelymail-client",
+      "version": "0.1.0",
+      "dependencies": {
+        "@formless63/dns-plan": "workspace:^",
+        "@formless63/provider-http": "workspace:^",
+        "zod": "^4.6.0",
+      },
+    },
     "packages/rdap": {
       "name": "@formless63/rdap",
       "version": "0.1.0",
@@ -230,6 +243,10 @@
         "@formless63/provider-http": "workspace:^",
         "zod": "^4.6.0",
       },
+    },
+    "packages/recurring-costs": {
+      "name": "@formless63/recurring-costs",
+      "version": "0.1.0",
     },
     "packages/registrar": {
       "name": "@formless63/registrar",
@@ -469,13 +486,19 @@
 
     "@formless63/file-delivery": ["@formless63/file-delivery@workspace:packages/file-delivery"],
 
+    "@formless63/json-redact": ["@formless63/json-redact@workspace:packages/json-redact"],
+
     "@formless63/messy-table": ["@formless63/messy-table@workspace:packages/messy-table"],
 
     "@formless63/pangolin-client": ["@formless63/pangolin-client@workspace:packages/pangolin-client"],
 
     "@formless63/provider-http": ["@formless63/provider-http@workspace:packages/provider-http"],
 
+    "@formless63/purelymail-client": ["@formless63/purelymail-client@workspace:packages/purelymail-client"],
+
     "@formless63/rdap": ["@formless63/rdap@workspace:packages/rdap"],
+
+    "@formless63/recurring-costs": ["@formless63/recurring-costs@workspace:packages/recurring-costs"],
 
     "@formless63/registrar": ["@formless63/registrar@workspace:packages/registrar"],
 

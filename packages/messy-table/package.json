@@ -1,7 +1,6 @@
 {
   "name": "@formless63/messy-table",
   "version": "0.1.0",
-  "private": true,
   "description": "Find the header row and typed columns in real-world spreadsheets and reports.",
   "keywords": [
     "csv",
@@ -11,6 +10,15 @@
     "xlsx"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/messy-table"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/messy-table#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -27,5 +35,8 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

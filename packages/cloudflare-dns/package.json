@@ -1,7 +1,6 @@
 {
   "name": "@formless63/cloudflare-dns",
   "version": "0.1.0",
-  "private": true,
   "description": "Cloudflare zones and DNS records as a typed DNS provider.",
   "keywords": [
     "cloudflare",
@@ -9,6 +8,15 @@
     "zone"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/cloudflare-dns"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/cloudflare-dns#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
@@ -30,5 +38,8 @@
     "@formless63/dns-plan": "workspace:^",
     "@formless63/provider-http": "workspace:^",
     "zod": "^4.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

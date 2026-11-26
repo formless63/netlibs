@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewer-pdf",
   "version": "0.1.0",
-  "private": true,
   "description": "PDF viewer: native browser rendering with a pdf.js canvas fallback.",
   "keywords": [
     "react",
@@ -9,6 +8,15 @@
     "viewer"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-pdf"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-pdf#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "./dist/pdf-worker.js",
@@ -16,11 +24,6 @@
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewer-pdf"
   },
   "bin": {
     "viewer-pdf-assets": "./bin/pdf-assets.mjs"
@@ -49,5 +52,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

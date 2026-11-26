@@ -1,7 +1,6 @@
 {
   "name": "@formless63/viewer-ecad",
   "version": "0.1.0",
-  "private": true,
   "description": "KiCad and Gerber/Excellon viewers.",
   "keywords": [
     "react",
@@ -11,6 +10,15 @@
     "viewer"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-ecad"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-ecad#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css",
@@ -18,11 +26,6 @@
   ],
   "engines": {
     "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/formless63/netlibs.git",
-    "directory": "packages/viewer-ecad"
   },
   "files": [
     "dist",
@@ -51,5 +54,8 @@
   },
   "peerDependencies": {
     "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -22,6 +22,8 @@ jobs:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bun run ci
+      - if: matrix.node == 24
+        run: bun scripts/release.ts --dry-run
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 25
