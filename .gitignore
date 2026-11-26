@@ -7,3 +7,5 @@ packages/*/THIRD_PARTY_NOTICES.md
 .output
 .nitro
 .tanstack
+test-results
+playwright-report

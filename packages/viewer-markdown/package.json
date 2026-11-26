@@ -1,0 +1,67 @@
+{
+  "name": "@formless63/viewer-markdown",
+  "version": "0.1.0",
+  "description": "Markdown document viewer with optional Mermaid diagrams.",
+  "keywords": [
+    "react",
+    "markdown",
+    "mermaid"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-markdown"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-markdown#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./definitions": {
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js"
+    },
+    "./mermaid": {
+      "types": "./dist/mermaid.d.ts",
+      "import": "./dist/mermaid.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/viewer-core": "workspace:*",
+    "highlight.js": "^11.12.0",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1"
+  },
+  "peerDependencies": {
+    "mermaid": "^12.3.0",
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mermaid": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

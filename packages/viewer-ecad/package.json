@@ -1,0 +1,61 @@
+{
+  "name": "@formless63/viewer-ecad",
+  "version": "0.1.0",
+  "description": "KiCad and Gerber/Excellon viewers.",
+  "keywords": [
+    "react",
+    "kicad",
+    "gerber",
+    "pcb",
+    "viewer"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-ecad"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-ecad#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "./vendor/kicanvas.js"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "vendor",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./definitions": {
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/viewer-core": "workspace:*",
+    "@tracespace/identify-layers": "5.0.0-alpha.0",
+    "@tracespace/parser": "5.0.0-alpha.0",
+    "@tracespace/plotter": "5.0.0-alpha.0",
+    "@tracespace/renderer": "5.0.0-alpha.0",
+    "hast-util-to-html": "^9.0.6"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

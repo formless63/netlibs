@@ -64,6 +64,10 @@
     "packages/registrar-namecheap/test",
     "packages/registrar-spaceship/test",
     "scripts/pack.ts",
-    "scripts/verify-packages.ts"
+    "scripts/verify-packages.ts",
+    "scripts/build-viewer-css.ts",
+    "scripts/test.ts",
+    "scripts/verify-viewers.ts",
+    "scripts/vendor-kicanvas.ts"
   ]
 }

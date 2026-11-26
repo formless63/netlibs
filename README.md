@@ -1,7 +1,7 @@
 # netlibs
 
-Small, independent TypeScript libraries: domain names, DNS and the APIs around them, and a rich-text editor.
-Use one or combine several. ESM, Node 22+ and Bun.
+Small, independent TypeScript libraries: domain names, DNS and the APIs around them, file
+viewers, a rich-text editor and document utilities. Use one or combine several. ESM, Node 22+ and Bun.
 
 ## Domains and DNS
 
@@ -37,6 +37,31 @@ Use one or combine several. ESM, Node 22+ and Bun.
 The editor packages need no router, database, auth or Tailwind. They use the Tiptap, CodeMirror and Radix
 libraries and share nothing with the domain packages. Guides: [API](docs/editor/api.md),
 [TanStack Start](docs/editor/tanstack-start.md), [limitations](docs/editor/limitations.md).
+
+## Documents and files
+
+| Package | Use it to | Depends on |
+| --- | --- | --- |
+| [`block-diff`](packages/block-diff) | Compare two revisions of a block document by identity, with moves | nothing |
+| [`messy-table`](packages/messy-table) | Find headers and typed columns in real-world spreadsheets | nothing |
+| [`file-delivery`](packages/file-delivery) | Serve user uploads without letting one run script | nothing |
+| [`write-behind`](packages/write-behind) | Know what in-memory state is really stored | nothing |
+
+## File viewers for React
+
+| Package | Formats | Engine |
+| --- | --- | --- |
+| [`viewer-core`](packages/viewer-core) | none | Sources, adapters, registry, `FileViewer` |
+| [`viewer-pdf`](packages/viewer-pdf) | PDF | The browser's viewer, or pdf.js |
+| [`viewer-model`](packages/viewer-model) | STL, OBJ, PLY, OFF, 3MF, GLB, glTF | online-3d-viewer, model-viewer |
+| [`viewer-ecad`](packages/viewer-ecad) | KiCad boards and schematics, Gerber, Excellon | KiCanvas, tracespace |
+| [`viewer-lbx`](packages/viewer-lbx) | Brother P-touch labels | bil-lbx |
+| [`viewer-media`](packages/viewer-media) | Images, text, sandboxed HTML | the browser |
+| [`viewer-markdown`](packages/viewer-markdown) | Markdown, optional Mermaid | react-markdown |
+| [`viewers`](packages/viewers) | all of the above | a lazy registry |
+
+Engines load only when a file of that kind is shown, and every import is safe on a server. Guides:
+[formats and limits](docs/viewers/formats.md), [integration](docs/viewers/integration.md).
 
 All names are under `@formless63/` on npm, e.g. `npm install @formless63/rdap`. Releases: [docs/releasing.md](docs/releasing.md).
 
@@ -79,9 +104,10 @@ await dns.apply(ref, plan);
 ```bash
 bun install
 bun run ci               # build, typecheck, test, examples, verify packed packages in clean directories
+bun run test:browser     # viewers and file-delivery in Chromium (build the viewer playground first)
 bun run playground       # the editor, at http://localhost:5173
 bun run pack:all         # ./artifacts/*.tgz
 ```
 
-Structure and reasons: [docs/architecture.md](docs/architecture.md). MIT licensed; the editor packages also carry
-[third-party notices](THIRD_PARTY_NOTICES.md).
+Structure and reasons: [docs/architecture.md](docs/architecture.md). MIT licensed; the editor and viewer packages also
+carry [third-party notices](THIRD_PARTY_NOTICES.md).

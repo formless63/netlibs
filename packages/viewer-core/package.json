@@ -1,0 +1,47 @@
+{
+  "name": "@formless63/viewer-core",
+  "version": "0.1.0",
+  "description": "Source, adapter, registry and frame primitives shared by every file viewer.",
+  "keywords": [
+    "react",
+    "viewer",
+    "preview",
+    "file"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-core"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-core#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

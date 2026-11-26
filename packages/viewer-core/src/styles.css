@@ -1,0 +1,242 @@
+/*
+ * file viewer chrome. Every colour falls through to shadcn-style tokens
+ * when the host defines them, then to a neutral default. Override the --fv-*
+ * variables to theme independently. The defaults follow the host's `color-scheme`.
+ */
+:where(.fv-root, .fv-frame) {
+  --fv-bg: var(--background, light-dark(#fff, #111113));
+  --fv-fg: var(--foreground, light-dark(#171717, #ededef));
+  --fv-muted: var(--muted, light-dark(#f4f4f5, #1c1c1f));
+  --fv-muted-fg: var(--muted-foreground, light-dark(#63636e, #a0a0ab));
+  --fv-border: var(--border, light-dark(#dcdce0, #303036));
+  --fv-accent: var(--primary, light-dark(#1d4ed8, #7aa2ff));
+  --fv-danger: var(--destructive, light-dark(#b91c1c, #f87171));
+  --fv-ring: var(--ring, #3b82f6);
+  --fv-radius: var(--radius, 6px);
+}
+.fv-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  color: var(--fv-fg);
+  background: var(--fv-bg);
+}
+.fv-frame-body {
+  position: relative;
+  width: 100%;
+  max-height: 80vh;
+  overflow: hidden;
+}
+.fv-frame-fill {
+  height: 100%;
+}
+.fv-frame-fill > .fv-frame-body,
+.fv-frame:fullscreen > .fv-frame-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto !important;
+}
+.fv-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--fv-border);
+  font-size: 0.75rem;
+}
+.fv-header-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.fv-header-size {
+  color: var(--fv-muted-fg);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fv-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: var(--fv-fg);
+}
+.fv-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.fv-message,
+.fv-guard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 3rem;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--fv-muted-fg);
+}
+.fv-overlay {
+  position: absolute;
+  inset: 0;
+}
+.fv-message-detail {
+  max-width: 48ch;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.fv-message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.fv-guard {
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.fv-guard:hover {
+  color: var(--fv-fg);
+}
+.fv-text-button {
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--fv-accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.fv-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.25rem;
+  border: 0;
+  border-radius: calc(var(--fv-radius) - 2px);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.fv-button:hover:not(:disabled),
+.fv-button[aria-pressed='true'] {
+  background: var(--fv-muted);
+}
+.fv-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.fv-root :focus-visible,
+.fv-frame :focus-visible {
+  outline: 2px solid var(--fv-ring);
+  outline-offset: -2px;
+}
+.fv-toolbar {
+  position: absolute;
+  right: 0.375rem;
+  bottom: 0.375rem;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem;
+  max-width: calc(100% - 0.75rem);
+  padding: 0.125rem;
+  border: 1px solid var(--fv-border);
+  border-radius: var(--fv-radius);
+  background: var(--fv-bg);
+  color: var(--fv-fg);
+  font-size: 0.75rem;
+  opacity: 0.55;
+  transition: opacity 120ms;
+}
+.fv-root:hover .fv-toolbar,
+.fv-toolbar:focus-within {
+  opacity: 1;
+}
+@media (hover: none) {
+  .fv-toolbar {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-toolbar {
+    transition: none;
+  }
+}
+.fv-panzoom,
+.fv-panzoom-viewport,
+.fv-panzoom-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.fv-panzoom-viewport {
+  overflow: hidden;
+}
+.fv-panzoom-viewport[data-fv-zoomed='true'] {
+  cursor: grab;
+  touch-action: none;
+}
+.fv-panzoom-viewport[data-fv-zoomed='true']:active {
+  cursor: grabbing;
+}
+.fv-panzoom-content {
+  transform-origin: 0 0;
+}
+.fv-layer-list {
+  position: absolute;
+  top: 0.375rem;
+  left: 0.375rem;
+  z-index: 2;
+  display: grid;
+  gap: 0.125rem;
+  max-height: calc(100% - 0.75rem);
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  overflow: auto;
+  border: 1px solid var(--fv-border);
+  border-radius: var(--fv-radius);
+  background: var(--fv-bg);
+  color: var(--fv-fg);
+  font-size: 0.6875rem;
+}
+.fv-layer-list legend {
+  float: left;
+  padding: 0;
+  font-weight: 600;
+}
+.fv-layer-list label {
+  clear: both;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+.fv-layer-list input {
+  margin: 0;
+}
+.fv-layer-list span {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+}

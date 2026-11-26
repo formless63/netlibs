@@ -1,0 +1,59 @@
+{
+  "name": "@formless63/viewer-pdf",
+  "version": "0.1.0",
+  "description": "PDF viewer: native browser rendering with a pdf.js canvas fallback.",
+  "keywords": [
+    "react",
+    "pdf",
+    "viewer"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/viewer-pdf"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/viewer-pdf#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./dist/pdf-worker.js",
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "viewer-pdf-assets": "./bin/pdf-assets.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "bin",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./definitions": {
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js"
+    },
+    "./worker": "./dist/pdf-worker.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@formless63/viewer-core": "workspace:*",
+    "pdfjs-dist": "6.5.438"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

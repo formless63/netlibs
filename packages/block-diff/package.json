@@ -1,0 +1,46 @@
+{
+  "name": "@formless63/block-diff",
+  "version": "0.1.0",
+  "description": "Compare two revisions of a block document by stable block identity, with move detection.",
+  "keywords": [
+    "diff",
+    "prosemirror",
+    "tiptap",
+    "revision",
+    "blocks"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/block-diff"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/block-diff#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./prosemirror": {
+      "types": "./dist/prosemirror.d.ts",
+      "default": "./dist/prosemirror.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

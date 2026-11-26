@@ -1,0 +1,42 @@
+{
+  "name": "@formless63/file-delivery",
+  "version": "0.1.0",
+  "description": "Response headers that make serving user uploads safe.",
+  "keywords": [
+    "upload",
+    "security",
+    "content-disposition",
+    "csp",
+    "headers"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formless63/netlibs.git",
+    "directory": "packages/file-delivery"
+  },
+  "homepage": "https://github.com/formless63/netlibs/tree/main/packages/file-delivery#readme",
+  "bugs": {
+    "url": "https://github.com/formless63/netlibs/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
