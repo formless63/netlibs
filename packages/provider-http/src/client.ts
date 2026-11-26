@@ -62,7 +62,10 @@ export interface HttpClientOptions extends Omit<BaseUrlOptions, 'provider'> {
 export interface HttpClient {
   readonly provider: string;
   readonly baseUrl: string;
-  /** Performs one request. Resolves for any HTTP status; throws only without a usable response. */
+  /**
+   * Performs one request. Resolves for any HTTP status; throws only without a usable response. An
+   * oversized error answer resolves with its status and an empty `text`.
+   */
   request(request: HttpRequest): Promise<HttpResult>;
   /** Builds an error with provider text already made safe. */
   error(options: Omit<ProviderErrorOptions, 'provider'>): ProviderError;
@@ -86,7 +89,9 @@ export function assertHeaderSafe(provider: string, label: string, value: unknown
   return value.trim();
 }
 
-class TooLarge extends Error {}
+class TooLarge extends Error {
+  status?: number;
+}
 
 /** Reads at most `limit` bytes, so a hostile or broken server cannot exhaust memory. */
 export async function readBounded(response: FetchResponse, limit: number): Promise<string> {
@@ -184,6 +189,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
           return error({
             kind: 'invalid_response',
             message: `the ${provider} answer is too large (over ${limit} bytes)`,
+            status: cause.status ?? null,
             operation
           });
         }
@@ -219,7 +225,18 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
           redirect: 'error',
           ...(input.json === undefined ? {} : { body: JSON.stringify(input.json) })
         });
-        const text = await readBounded(response, limit);
+        let text: string;
+        try {
+          text = await readBounded(response, limit);
+        } catch (cause) {
+          // An oversized refusal still says what happened: keep its status, drop its body.
+          if (!(cause instanceof TooLarge)) throw cause;
+          if (response.status >= 200 && response.status < 300) {
+            cause.status = response.status;
+            throw cause;
+          }
+          text = '';
+        }
         const header = (name: string): string | null => response.headers?.get(name) ?? null;
         return {
           status: response.status,
