@@ -1,6 +1,6 @@
 {
   "name": "@formless63/editor-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Tiptap-based rich-text editor component with media viewers.",
   "type": "module",
   "license": "MIT",

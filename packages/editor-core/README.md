@@ -15,4 +15,4 @@ serializeMarkdown(next);
 Documents hold stable ids, never URLs; a host supplies an `EditorResolver` to turn ids into links.
 `@formless63/editor-core/model` is the part that loads no Tiptap or ProseMirror.
 
-See `docs/editor/api.md` in the repository.
+See the [API guide](https://github.com/formless63/netlibs/blob/main/docs/editor/api.md).
