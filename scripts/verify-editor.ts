@@ -4,6 +4,7 @@
  * under both bundler and NodeNext resolution.
  */
 import { $ } from 'bun';
+import { readFileSync } from 'node:fs';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,7 +13,10 @@ const root = new URL('..', import.meta.url).pathname;
 await $`bun scripts/pack.ts`.cwd(root).quiet();
 
 const dir = await mkdtemp(join(tmpdir(), 'netlibs-editor-verify-'));
-const tarball = (name: string): string => `file:${root}artifacts/formless63-editor-${name}-0.1.0.tgz`;
+const tarball = (name: string): string => {
+  const { version } = JSON.parse(readFileSync(`${root}packages/editor-${name}/package.json`, 'utf8')) as { version: string };
+  return `file:${root}artifacts/formless63-editor-${name}-${version}.tgz`;
+};
 const local = {
   '@formless63/editor-core': tarball('core'),
   '@formless63/editor-renderer': tarball('renderer'),
