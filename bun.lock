@@ -117,7 +117,7 @@
     },
     "packages/editor-core": {
       "name": "@formless63/editor-core",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@tiptap/core": "3.35.0",
         "@tiptap/extension-code-block": "3.35.0",
@@ -153,7 +153,7 @@
     },
     "packages/editor-react": {
       "name": "@formless63/editor-react",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@codemirror/commands": "6.11.1",
         "@codemirror/lang-markdown": "6.5.2",
@@ -189,7 +189,7 @@
     },
     "packages/editor-renderer": {
       "name": "@formless63/editor-renderer",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@formless63/editor-core": "workspace:*",
         "@types/hast": "3.0.5",

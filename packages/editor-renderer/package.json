@@ -1,6 +1,6 @@
 {
   "name": "@formless63/editor-renderer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only React and HTML renderer for rich-text documents. No editor code.",
   "type": "module",
   "license": "MIT",

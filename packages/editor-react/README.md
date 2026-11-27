@@ -12,4 +12,4 @@ import '@formless63/editor-react/styles.css';
 
 Browser only: load it lazily. `mermaid` and `pdfjs-dist` are optional peers. Tailwind is not required.
 
-See `docs/editor/api.md` and `docs/editor/limitations.md` in the repository.
+See the [API guide](https://github.com/formless63/netlibs/blob/main/docs/editor/api.md) and [limitations](https://github.com/formless63/netlibs/blob/main/docs/editor/limitations.md).

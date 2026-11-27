@@ -12,4 +12,4 @@ import '@formless63/editor-renderer/styles.css';
 `renderDocumentToHtml` in `@formless63/editor-renderer/html` returns a string. Unvalidated content is safe to
 render: URLs are checked on output and unknown nodes degrade to their children.
 
-See `docs/editor/api.md` in the repository.
+See the [API guide](https://github.com/formless63/netlibs/blob/main/docs/editor/api.md).

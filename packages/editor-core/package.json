@@ -1,6 +1,6 @@
 {
   "name": "@formless63/editor-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rich-text document model: schema, validation, Markdown, programmatic edits and revisions.",
   "type": "module",
   "license": "MIT",
